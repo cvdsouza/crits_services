@@ -55,6 +55,7 @@ import json
 import itertools
 from collections import OrderedDict
 import requests
+from django.conf import settings
 
 # Exceptions
 class DTError(Exception):
@@ -99,6 +100,12 @@ class dtapi(object):
         }
 
     def apiquery(self, product_url, params={}):
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
         """Make an API query and return Requests response object."""
         requesturl = self.config['host'] + product_url
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -108,9 +115,10 @@ class dtapi(object):
         params['timestamp'] = timestamp
         params['signature'] = signature
         params['api_username'] = self.config['username']
+        params['api_key'] = self.config['key']
         if 'format' not in params.keys():
             params['format'] = self.config['dataformat']
-        req = requests.get(requesturl, params=params)
+        req = requests.get(requesturl, params=params, proxies=proxies)
         if req.status_code != requests.codes.ok:
             try:
                 json_response = req.json()
