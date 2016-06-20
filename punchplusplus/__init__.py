@@ -98,6 +98,7 @@ class PunchService(Service):
 
         self._info("IP Address : "+ str(obj.ip))
 
+
         iprep_url_check = url+str(obj.ip)+'/'+api
 
         r = requests.get(iprep_url_check, proxies= self.proxies)
@@ -108,7 +109,7 @@ class PunchService(Service):
 
         results = r.json()
 
-        self._add_result("Result", results)
+        self._add_result("Result", results('_id'), results )
 
     def run(self, obj, config):
 
