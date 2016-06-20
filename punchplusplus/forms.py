@@ -31,10 +31,12 @@ class PunchplusplusRunForm(forms.Form):
 
         if url and apiKey :
 
-            ip_rep = forms.BooleanField(required=False,
-                                            label="IP Rep",
-                                            help_text="Performs reputation check on IP Addresses")
+            self.fields['ip_rep'] = forms.BooleanField(required=False,
+                                                            initial=False,
+                                                            label="IP Rep",
+                                                            help_text="Performs reputation check on IP Addresses")
 
-            pcre_match = forms.BooleanField(required=False,
-                                            label="PCRE",
-                                            help_text="PCRE for full url match")
+            self.fields['pcre_match'] = forms.BooleanField(required=False,
+                                                            initial=False,
+                                                            label="PCRE",
+                                                            help_text="PCRE for full url match")
