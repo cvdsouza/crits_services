@@ -49,6 +49,50 @@ class PunchService(Service):
     @staticmethod
     def save_runtime_config(config):
         if config['url']:
-            del config['dt_api_key']
+            del config['url']
         if config['apiKey']:
-            del config['dt_username']
+            del config['apiKey']
+
+    @staticmethod
+    def bind_runtime_form(analyst, config):
+
+        form = forms.PunchplusplusRunForm(url=config['url'],
+                                          apiKey=config['apiKey'])
+        return form
+
+    @classmethod
+    def generate_runtime_form(self, analyst, config, crits_type, identifier):
+        html = render_to_string("services_run_form.html",
+                                {'name': self.name,
+                                 'form': forms.PunchplusplusRunForm(url=config['url'],
+                                                            apiKey=config['apiKey']),
+                                 'crits_type': crits_type,
+                                 'identifier': identifier})
+        return html
+
+    def iprep_check(self,obj,config):
+        url = config['url']
+        api = config['apiKey']
+
+        iprep_url_check = url+obj+'/'+api
+
+        r = requests.get(iprep_url_check, proxies= self.proxies)
+
+        if r.status_code != 200:
+            self._error("Response code not 200.")
+            return
+
+        results = r.json()
+
+        self._add_result("Result", results)
+
+    def run(self, obj, config):
+        if settings.HTTP_PROXY:
+            self.proxies = {'http': settings.HTTP_PROXY,
+                            'https': settings.HTTP_PROXY}
+        else:
+            self.proxies = {}
+
+        if config['url'] and config['apiKey'] :
+            self.iprep_check(obj, config)
+

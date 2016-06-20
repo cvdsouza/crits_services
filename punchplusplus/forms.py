@@ -33,3 +33,6 @@ class PunchplusplusRunForm(forms.Form):
                                     label="PCRE",
                                     help_text="PCRE for full url match")
 
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('label_suffix', ':')
+        super(PunchplusplusRunForm, self).__init__(*args, **kwargs)
