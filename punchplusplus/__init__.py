@@ -96,7 +96,7 @@ class PunchService(Service):
         url = config['url']
         api = config['apiKey']
 
-        iprep_url_check = url+obj+'/'+api
+        iprep_url_check = url+obj.ip+'/'+api
 
         r = requests.get(iprep_url_check, proxies= self.proxies)
 
