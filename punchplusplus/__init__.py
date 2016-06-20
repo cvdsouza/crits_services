@@ -110,6 +110,6 @@ class PunchService(Service):
     def run(self, obj, config):
 
 
-        if config['ip_rep'] :
-            self.iprep_check(obj, config)
+
+        self.iprep_check(obj, config)
 
