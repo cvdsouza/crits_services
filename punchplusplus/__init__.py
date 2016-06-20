@@ -37,6 +37,16 @@ class PunchService(Service):
                 config[key] = value
         return config
 
+    @staticmethod
+    def get_config_details(config):
+        display_config = {}
+
+        # Rename keys so they render nice.
+        fields = forms.PunchplusplusConfigForm().fields
+        for name, field in fields.iteritems():
+            display_config[field.label] = config[name]
+        return display_config
+
     @classmethod
     def generate_config_form(self, config):
         html = render_to_string('services_config_form.html',
@@ -56,8 +66,9 @@ class PunchService(Service):
     @staticmethod
     def bind_runtime_form(analyst, config):
 
-        form = forms.PunchplusplusRunForm(url=config['url'],
-                                          apiKey=config['apiKey'])
+        form = forms.PunchplusplusRunForm(pydat_url=config['url'],
+                                  dt_api_key=config['apiKey'],
+                                  data=config)
         return form
 
     @classmethod
@@ -69,6 +80,16 @@ class PunchService(Service):
                                  'crits_type': crits_type,
                                  'identifier': identifier})
         return html
+
+    @property
+    def proxies(self):
+        proxy_host = self.config.get('proxy_host')
+        proxy_port = self.config.get('proxy_port')
+        if proxy_host:
+            proxy = proxy_host + ':' + str(proxy_port)
+        else:
+            proxy = ''
+        return {'http': proxy, 'https': proxy}
 
     def iprep_check(self,obj,config):
         url = config['url']
@@ -87,11 +108,7 @@ class PunchService(Service):
         self._add_result("Result", results)
 
     def run(self, obj, config):
-        if settings.HTTP_PROXY:
-            self.proxies = {'http': settings.HTTP_PROXY,
-                            'https': settings.HTTP_PROXY}
-        else:
-            self.proxies = {}
+
 
         if config['url'] and config['apiKey'] :
             self.iprep_check(obj, config)
