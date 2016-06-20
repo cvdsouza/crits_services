@@ -13,9 +13,9 @@ from crits.services.core import Service, ServiceConfigError
 logger = logging.getLogger(__name__)
 
 class PunchService(Service):
-    name = "punch"
+    name = "punch_IP_REP"
     version = '1.0.0'
-    supported_types = ['URL','IP']
+    supported_types = ['IP']
     description = "Analyze IP reputation or malicious URL pcre"
 
     @staticmethod
@@ -112,8 +112,6 @@ class PunchService(Service):
         self._add_result("Result", results('_id'), results )
 
     def run(self, obj, config):
-
-
 
         self.iprep_check(obj, config)
 
