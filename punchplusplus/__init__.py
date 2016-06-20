@@ -96,7 +96,7 @@ class PunchService(Service):
         url = config['url']
         api = config['apiKey']
 
-        #self._info("IP Address : "+ obj.ip)
+        self._info("IP Address : "+ str(obj.ip))
 
         iprep_url_check = url+str(obj.ip)+'/'+api
 
