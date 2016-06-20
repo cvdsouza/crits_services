@@ -20,7 +20,7 @@ class PunchplusplusConfigForm(forms.Form):
         kwargs.setdefault('label_suffix', ':')
         super(PunchplusplusConfigForm, self).__init__(*args, **kwargs)
 
-
+'''
 class PunchplusplusRunForm(forms.Form):
     error_css_class = 'error'
     required_css_class = 'required'
@@ -35,10 +35,10 @@ class PunchplusplusRunForm(forms.Form):
                                                             initial=False,
                                                             label="IP Rep",
                                                             help_text="Performs reputation check on IP Addresses")
-            '''
+
 
             self.fields['pcre_match'] = forms.BooleanField(required=False,
                                                             initial=False,
                                                             label="PCRE",
                                                             help_text="PCRE for full url match")
-             '''
+ '''

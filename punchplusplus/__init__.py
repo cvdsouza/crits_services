@@ -55,7 +55,7 @@ class PunchService(Service):
                                  'config_error': None})
         form = forms.PunchplusplusConfigForm
         return form, html
-
+    '''
     @staticmethod
     def save_runtime_config(config):
         if config['url']:
@@ -80,6 +80,7 @@ class PunchService(Service):
                                  'crits_type': crits_type,
                                  'identifier': identifier})
         return html
+    '''
 
     @property
     def proxies(self):
