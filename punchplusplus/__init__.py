@@ -107,8 +107,8 @@ class PunchService(Service):
             return
 
         results = r.json()
-
-        self._add_result("Result", results['origin'], results )
+        for mkey, subdict in results.iteritems():
+            self._add_result("Result", mkey, subdict )
 
     def run(self, obj, config):
 
