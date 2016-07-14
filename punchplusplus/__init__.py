@@ -108,7 +108,7 @@ class PunchService(Service):
 
         results = r.json()
 
-        self._add_result("Result", results('_id'), results )
+        self._add_result("Result", results['origin'], results )
 
     def run(self, obj, config):
 
