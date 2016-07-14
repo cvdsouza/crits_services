@@ -121,7 +121,7 @@ class PunchService(Service):
                     "Continent": num['continent_code'],
                     "Country": num['country_name']
                 }
-            self._add_result("Geo Location", geo)
+            self._add_result("Geo Location","Location" ,geo)
 
     def run(self, obj, config):
 
