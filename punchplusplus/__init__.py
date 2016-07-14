@@ -107,9 +107,13 @@ class PunchService(Service):
             return
 
         results = r.json()
+        self._add_result("Origin", results['origin'],)
+        self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(obj.ip)+"?apikey="+api)
         for mkey, subdict in results.iteritems():
             if 'context' in subdict:
                 self._add_result("IP Context", mkey, subdict)
+            if 'MaxMind_Free_GeoIP' in mkey:
+                self._add_result("Geo Location",mkey,subdict)
 
     def run(self, obj, config):
 
