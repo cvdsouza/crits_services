@@ -100,7 +100,7 @@ class PunchService(Service):
 
         iprep_url_check = url+str(obj.ip)+'/'+api
 
-        r = requests.get(iprep_url_check, proxies= proxies)
+        r = requests.get(iprep_url_check,verify=False, proxies= proxies)
 
         if r.status_code != 200:
             self._error("Response code not 200.")
