@@ -108,7 +108,8 @@ class PunchService(Service):
 
         results = r.json()
         for mkey, subdict in results.iteritems():
-            self._add_result("Result", mkey, subdict )
+            if 'context' in subdict:
+                self._add_result("IP Context", mkey, subdict)
 
     def run(self, obj, config):
 
