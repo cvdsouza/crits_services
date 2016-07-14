@@ -113,9 +113,15 @@ class PunchService(Service):
             if 'context' in subdict:
                 self._add_result("IP Context", mkey, subdict)
 
-        for mkey,subdict in results.iteritems():
-            if 'MaxMind_Free_GeoIP' in mkey:
-                self._add_result("Geo Location", mkey, subdict)
+        if 'MaxMind_Free_GeoIP' in results:
+            geo={}
+            for num in results.get('MaxMind_Free_GeoIP'):
+                geo = {
+                    "city": num['city'],
+                    "Continent": num['continent_code'],
+                    "Country": num['country_name']
+                }
+            self._add_result("Geo Location", geo)
 
     def run(self, obj, config):
 
