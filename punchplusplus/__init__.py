@@ -82,17 +82,16 @@ class PunchService(Service):
         return html
     '''
 
-    @property
-    def proxies(self):
-        proxy_host = self.config.get('proxy_host')
-        proxy_port = self.config.get('proxy_port')
-        if proxy_host:
-            proxy = proxy_host + ':' + str(proxy_port)
-        else:
-            proxy = ''
-        return {'http': proxy, 'https': proxy}
+
 
     def iprep_check(self,obj,config):
+
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
         url = config['url']
         api = config['apiKey']
 
@@ -101,7 +100,7 @@ class PunchService(Service):
 
         iprep_url_check = url+str(obj.ip)+'/'+api
 
-        r = requests.get(iprep_url_check, proxies= self.proxies)
+        r = requests.get(iprep_url_check, proxies= proxies)
 
         if r.status_code != 200:
             self._error("Response code not 200.")
