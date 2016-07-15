@@ -1,6 +1,6 @@
 from django import forms
 
-class AlienVaultRunForm(forms.Form):
+class AlienVaultConfigForm(forms.Form):
     error_css_class = 'error'
     required_css_class = 'required'
     av_url = forms.BooleanField(required=False,
@@ -16,4 +16,4 @@ class AlienVaultRunForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
-        super(AlienVaultRunForm, self).__init__(*args, **kwargs)
+        super(AlienVaultConfigForm, self).__init__(*args, **kwargs)
