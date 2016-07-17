@@ -3,7 +3,7 @@ from django import forms
 class AlienVaultConfigForm(forms.Form):
     error_css_class = 'error'
     required_css_class = 'required'
-    av_url = forms.BooleanField(required=False,
+    av_url = forms.CharField(required=False,
                                             initial=False,
                                             label='AlienVault',
                                             help_text="https://otx.alienvault.com:443/api/v1/")
