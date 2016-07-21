@@ -175,35 +175,86 @@ class AlienVaultOTXService(Service):
             else:
 
                 self._info("IPv6 Address : " + str(obj.ip))
+
                 request_url = url + 'indicators/IPv6/' + str(obj.ip) + '/malware'
-                r = requests.get(request_url, verify=False, proxies=proxies)
+                request_url_general = url + 'indicators/IPv6/' + str(obj.ip) + '/general'
+                request_url_reputation = url + 'indicators/IPv6/' + str(obj.ip) + '/reputation'
+                request_url_list = url + 'indicators/IPv6/' + str(obj.ip) + '/url_list'
+                headers = {'X-OTX-API-KEY': api}
+
+                r = requests.get(request_url, headers=headers, verify=False, proxies=proxies)
+                r_g = requests.get(request_url_general, headers=headers, verify=False, proxies=proxies)
+                r_rp = requests.get(request_url_reputation, headers=headers, verify=False, proxies=proxies)
+                r_url_list = requests.get(request_url_list, headers=headers, verify=False, proxies=proxies)
 
                 if r.status_code != 200:
                     self._error("Response not OK")
                     return
+
                 results = r.json()
+                results_general = r_g.json()
+                results_reputation = r_rp.json()
+                results_url_list = r_url_list.json()
+
                 geolocation = {
-                    'Indicatior': results.get('indicator'),
-                    'Country': results.get('country_name'),
-                    'Flagged URL': results.get('flag_url'),
-                    'whois': results.get('whois')
+                    'Indicator': results_general.get('indicator'),
+                    'Country': results_general.get('country_name'),
+                    'whois': results_general.get('whois')
                 }
-                self._add_result("General Information", results.get('indicator'), geolocation)
+                '''
+                Simple Geolocation Data
+                '''
+                if geolocation is not None:
+                    self._add_result("General Information", results_general.get('indicator'), geolocation)
 
-                for i in results.get():
+                '''
+                Related malicious hashes.
+                '''
+                for i in results.get('data'):
                     self._add_result("Related Malicious Hash", i.get('hash'))
-
-                if results.get('pulse_info') is not None:
-                    for m, n in results.get('pulse_info').iteritems():
+                '''
+                Pulse Information
+                '''
+                if results_general.get('pulse_info') is not None:
+                    for m, n in results_general.get('pulse_info').iteritems():
                         if 'pulses' in m and bool(n):
                             pulses = n
                             self._add_result("Pulses Found", str(obj.ip), pulses)
-                else:
-                    self._info("No Pulses found... Moving on... ")
 
+                '''
+                Get reputational data
+                '''
+                activities = results_reputation['reputation']['activities']
+                for active in activities:
+                    self._add_result("IP Reputation-Activities", results_reputation['reputation']['address'], active)
+
+                domains = results_reputation['reputation']['domains']
+                for domain in domains:
+                    indicators.append([domain, IndicatorTypes.DOMAIN])
+
+                # Enable user to add unique indicators for this sample
+                added = []
+                for item in indicators:
+                    if item[0]:
+                        indicator = item[0].lower()
+                        if indicator not in added:
+                            added.append(indicator)
+                            tdict = {}
+                            if item[1] in (IndicatorTypes.IPV4_ADDRESS, IndicatorTypes.DOMAIN):
+                                tdict = {'Type': item[1]}
+                                id_ = Indicator.objects(value=indicator).only('id').first()
+                                if id_:
+                                    tdict['exists'] = str(id_.id)
+                            self._add_result('add_alienvault_indicators', indicator, tdict)
+
+                '''
+                Get URL List :URLs analyzed by AlienVault Labs which point to or are somehow associated with this IP address.
+                '''
+                for lst in results_url_list['url_list']:
+                    self._add_result("URL List", "List", lst)
 
         except socket.error:
-            self._error("not IPv4 address")
+            self._error("Couldn't establish connections or invalid IP address")
 
     def run(self, obj, config):
         self.check_indicators_ip(obj, config)
