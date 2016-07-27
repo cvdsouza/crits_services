@@ -122,6 +122,13 @@ class WHOISService(Service):
                     self._add_result('Live: Dates', date, {'Key': key})
 
     def do_pydat_query(self, obj, config):
+
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
         # Check for trailing slash, because pydat.example.org//ajax is bad.
         base = config['pydat_url']
         if base[-1] != '/':
@@ -130,7 +137,7 @@ class WHOISService(Service):
         # Figure out how many versions exist
         url = base + 'ajax/domain/' + obj.domain + '/'
 
-        r = requests.get(url, proxies=self.proxies)
+        r = requests.get(url, proxies=proxies)
         if r.status_code != 200:
             self._error("Response code not 200.")
             return
@@ -168,15 +175,25 @@ class WHOISService(Service):
                     self._add_result('pyDat Latest', v, {'Key': k})
 
     def do_dt_query(self, obj, config):
+
         dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
         try:
             resp = dt.whois_parsed(obj.domain)
+            resp1 = dt.reverse_ns(obj.domain,'80')
+            resp2 = dt.reverse_ip(obj.domain,'80')
+            resp3 = dt.hosting_history(obj.domain)
         except dtapi.DTError as e:
             self._info(str(e))
             return
 
         results = resp.json()
         results = results['response']['parsed_whois']
+        results1 = resp1.json()
+        results1 = results1['response']['primary_domains']
+        results2 = resp2.json()
+        results2 = results2['response']['ip_addresses']
+        results3 = resp3.json()
+        results3 = results3['response']
 
         contacts = results.get('contacts', {})
         for contact_type in contacts.keys():
@@ -196,6 +213,100 @@ class WHOISService(Service):
             if v:
                 self._add_result('DomainTools: Registrar', v, {'Key': k})
 
+        for pd in results1:
+            self._add_result('DomainTools: Name Server Domains',pd)
+
+        for reverseIP in results2.get('domain_names'):
+            self._add_result('DomainTools: Reverse IP', reverseIP)
+
+
+    def dt_ip_history(self, obj, config):
+        dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
+
+        try:
+            resp3 = dt.hosting_history(obj.domain)
+        except dtapi.DTError as e:
+            self._info(str(e))
+            return
+
+        results3 = resp3.json()
+        results3 = results3['response']
+
+        '''
+            Adding IP History
+            '''
+        ipHistory = results3.get('ip_history')
+
+        for info in ipHistory:
+            data = {
+                'domain': info.get('domain'),
+                'post_ip': info.get('post_ip'),
+                'pre_ip': info.get('pre_ip'),
+                'action': info.get('action'),
+                'action date': info.get('actiondate'),
+                'action in words': info.get('action_in_words'),
+            }
+            self._add_result('DomainTools: IP History' , data)
+
+    def dt_registrar_history(self, obj, config):
+        dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
+
+        try:
+            resp3 = dt.hosting_history(obj.domain)
+        except dtapi.DTError as e:
+            self._info(str(e))
+            return
+
+        results3 = resp3.json()
+        results3 = results3['response']
+
+        '''
+            Adding IP History
+            '''
+        ipHistory = results3.get('registrar_history')
+
+        for info in ipHistory:
+            data = {
+                'domain': info.get('domain'),
+                'date_updated': info.get('date_updated'),
+                'date_created': info.get('date_created'),
+                'date_expires': info.get('date_expires'),
+                'date_lastchecked': info.get('date_lastchecked'),
+                'registrar': info.get('registrar'),
+                'registrartag': info.get('registrartag'),
+            }
+            self._add_result('DomainTools: Registrar History', data)
+
+    def dt_nameserver_history(self, obj, config):
+        dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
+
+        try:
+            resp3 = dt.hosting_history(obj.domain)
+        except dtapi.DTError as e:
+            self._info(str(e))
+            return
+
+        results3 = resp3.json()
+        results3 = results3['response']
+
+        '''
+            Adding IP History
+            '''
+        ipHistory = results3.get('nameserver_history')
+
+        for info in ipHistory:
+            data = {
+                'domain': info.get('domain'),
+                'action': info.get('action'),
+                'actiondate': info.get('actiondate'),
+                'action_in_words': info.get('action_in_words'),
+                'post_mns': info.get('post_mns'),
+                'pre_mns': info.get('pre_mns'),
+            }
+            self._add_result('DomainTools: Nameserver History', data)
+
+
+
     def run(self, obj, config):
         if settings.HTTP_PROXY:
             self.proxies = {'http': settings.HTTP_PROXY,
@@ -211,3 +322,6 @@ class WHOISService(Service):
 
         if config['dt_api_key'] and config['dt_username'] and config['dt_query']:
             self.do_dt_query(obj, config)
+            self.dt_ip_history(obj, config)
+            self.dt_registrar_history(obj, config)
+            self.dt_nameserver_history(obj, config)
