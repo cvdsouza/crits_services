@@ -2,6 +2,7 @@ import logging
 import simplejson
 import urllib
 import urllib2
+import requests
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -74,6 +75,13 @@ class ShodanService(Service):
         return display_config
 
     def run(self, obj, config):
+        # Adding proxy capability.
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
         key = config.get('shodan_api_key', '')
         
         if not key:
@@ -82,16 +90,25 @@ class ShodanService(Service):
 
         api = shodan.Shodan(key)
 
+
+        result_dict=''
         if obj._meta['crits_type'] == 'IP':
             try:
-                result_dict = api.host(obj.ip)
+                shodan_url = "https://api.shodan.io/shodan/host/"+str(obj.ip)+"?key="+str(api)
+                self._info("URL : "+shodan_url)
+                #result_dict = api.host(obj.ip)
+                result_dict = requests.get(shodan_url,proxies=proxies)
+                self._info("Code : "+str(result_dict.status_code))
+                if result_dict.status_code != 200:
+                    self._info("ERROR, did not return a 200 code")
+                    return
+                result_dict = result_dict.json()
             except shodan.APIError, e:
                 logger.error('Shodan API Error (%s)' % e)
                 self._error("Network connection error checking Shodan (%s)" % e)
                 return
 
-        if not result_dict:
-            return
+
 
         # These are the keys we don't care about
         keys = ['data', 'ports', 'hostnames', 'vulns', 'ip_str']
