@@ -1,4 +1,6 @@
 import logging
+
+import itertools
 import simplejson
 import urllib
 import urllib2
@@ -80,6 +82,7 @@ class AlienVaultOTXService(Service):
                        'https': settings.HTTP_PROXY}
         else:
             proxies = {}
+
         indicators = []
         url = config['av_url']
         api = config['av_api']
@@ -389,13 +392,13 @@ class AlienVaultOTXService(Service):
             results_lst = r_lst.json()
             results = r.json()
 
-            self._add_result("General Information",str(obj.value), results.get('indicator'))
-            self._add_result("General Information", str(obj.value), results.get('alexa'))
-            self._add_result("General Information", str(obj.value), results.get('whois'))
-            self._add_result("General Information", str(obj.value), results.get('domain'))
+            self._add_result("General Information- Indicator", results.get('indicator'))
+            self._add_result("General Information- Alexa",  results.get('alexa'))
+            self._add_result("General Information- WHOIS",  results.get('whois'))
+            self._add_result("General Information- Domain",  results.get('domain'))
 
-            if results_lst.get('url_list'):
-                for i in results_lst.get('url_lst'):
+            if results_lst.get('url_list') is not None:
+                for i in results_lst.get('url_list'):
                     if i.get('result'):
                         self._add_result("URL Result",results_lst.get('net_loc'), i.get('result'))
 
@@ -428,8 +431,27 @@ class AlienVaultOTXService(Service):
             return
 
         results = r.json()
+        '''
+        General Hash Information
+        '''
 
+        pulse_data = {}
+        for mkey, subdict in results.iteritems():
+            if 'pulses' in subdict:
+                pulse_data = mkey, subdict['pulses']
 
+        pulse_list = pulse_data[1]
+
+        for item in pulse_list:
+            name = item['name']
+            author = item['author']
+            self._add_result("General Information", name, author)
+
+            if 'id' in item:
+                if item['tags']:
+                    d = dict(itertools.izip_longest(*[iter(item['tags'])] * 2, fillvalue=""))
+                    self._add_result("Associated Metadata",name, d)
+                    break
 
 
 
