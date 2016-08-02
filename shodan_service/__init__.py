@@ -94,7 +94,7 @@ class ShodanService(Service):
         result_dict=''
         if obj._meta['crits_type'] == 'IP':
             try:
-                shodan_url = "https://api.shodan.io/shodan/host/"+str(obj.ip)+"?key="+str(api)
+                shodan_url = "https://api.shodan.io/shodan/host/"+str(obj.ip)+"?key="+str(key)
                 self._info("URL : "+shodan_url)
                 #result_dict = api.host(obj.ip)
                 result_dict = requests.get(shodan_url,proxies=proxies)
