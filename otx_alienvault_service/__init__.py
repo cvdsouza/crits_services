@@ -5,6 +5,7 @@ import urllib2
 import urlparse
 import requests
 import socket
+import re
 
 from hashlib import md5
 
@@ -304,8 +305,9 @@ class AlienVaultOTXService(Service):
         '''
         Related malware hashes.
         '''
-        for i in results.get('data'):
-            self._add_result("Related Malicious Hash", i.get('hash'))
+        if results.get('data') is not None:
+            for i in results.get('data'):
+                self._add_result("Related Malicious Hash", i.get('hash'))
         '''
         Pulse Information
         '''
@@ -318,13 +320,14 @@ class AlienVaultOTXService(Service):
         '''
         Get reputational data
         '''
-        activities = results_reputation['reputation']['activities']
-        for active in activities:
-            self._add_result("Reputation-Activities", results_reputation['reputation']['address'], active)
+        if 'reputation' in results_reputation:
+            activities = results_reputation['reputation']['activities']
+            for active in activities:
+                self._add_result("Reputation-Activities", results_reputation['reputation']['address'], active)
 
-        domains = results_reputation['reputation']['domains']
-        for domain in domains:
-            indicators.append([domain, IndicatorTypes.DOMAIN])
+            domains = results_reputation['reputation']['domains']
+            for domain in domains:
+                indicators.append([domain, IndicatorTypes.DOMAIN])
 
         # Enable user to add unique indicators for this sample
         added = []
@@ -347,9 +350,84 @@ class AlienVaultOTXService(Service):
         for lst in results_url_list['url_list']:
             self._add_result("URL List", "List", lst)
 
-    #def check_indicators_url(self, obj, config):
+    def check_indicators_url(self, obj, config):
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
 
-    #def check_indicators_filehash(self, obj, config):
+        indicators = []
+        url = config['av_url']
+        api = config['av_api']
+
+        regex = re.compile(
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+        regex_1 = re.compile(r'^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+        if regex.match(str(obj.value)) or regex_1.match(str(obj.value)):
+            request_url_lst = url + 'indicators/url/' + str(obj.value) + '/url_list'
+            request_url = url +'indicators/url/' + str(obj.value) + '/general'
+            headers = {'X-OTX-API-KEY': api}
+            r = requests.get(request_url, headers=headers, verify=False, proxies=proxies)
+            r_lst = requests.get(request_url_lst, headers=headers, verify=False, proxies=proxies)
+
+            if r_lst.status_code != 200:
+                self._error("Response not OK")
+                return
+
+            results_lst = r_lst.json()
+            results = r.json()
+
+            self._add_result("General Information",str(obj.value), results.get('indicator'))
+            self._add_result("General Information", str(obj.value), results.get('alexa'))
+            self._add_result("General Information", str(obj.value), results.get('whois'))
+            self._add_result("General Information", str(obj.value), results.get('domain'))
+
+            if results_lst.get('url_list'):
+                for i in results_lst.get('url_lst'):
+                    if i.get('result'):
+                        self._add_result("URL Result",results_lst.get('net_loc'), i.get('result'))
+
+        else:
+            self._info("Indicator not a URL")
+
+
+    def check_indicators_filehash(self, obj, config):
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
+        indicators = []
+        url = config['av_url']
+        api = config['av_api']
+
+        filehash = obj.md5
+
+        request_url = url + 'indicators/file/' + str(filehash) + '/general'
+        request_url_lst = url + 'indicators/file/' + str(filehash) + '/analysis'
+
+
+        headers = {'X-OTX-API-KEY': api}
+        r = requests.get(request_url, headers=headers, verify=False, proxies=proxies)
+
+        if r.status_code != 200:
+            self._error("Response not OK")
+            return
+
+        results = r.json()
 
 
 
@@ -362,7 +440,7 @@ class AlienVaultOTXService(Service):
             self.check_indicators_hostname(obj,config)
         elif obj._meta['crits_type'] == 'Indicator':
             self.check_indicators_url(obj,config)
-        else:
+        elif obj._meta['crits_type'] == 'Sample':
             self.check_indicators_filehash(obj,config)
 
 
