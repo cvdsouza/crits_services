@@ -425,6 +425,7 @@ class AlienVaultOTXService(Service):
 
         headers = {'X-OTX-API-KEY': api}
         r = requests.get(request_url, headers=headers, verify=False, proxies=proxies)
+        r_lst = requests.get(request_url_lst, headers=headers, verify=False, proxies=proxies)
 
         if r.status_code != 200:
             self._error("Response not OK")
@@ -452,6 +453,30 @@ class AlienVaultOTXService(Service):
                     d = dict(itertools.izip_longest(*[iter(item['tags'])] * 2, fillvalue=""))
                     self._add_result("Associated Metadata",name, d)
                     break
+
+        if r_lst.status_code != 200:
+            self._error("Response not OK")
+            return
+
+        results_lst = r_lst.json()
+        '''
+        Analysis results - Information
+        '''
+        self._add_result("Analysis - Information", results_lst.get('page_type'), results_lst['analysis']['info']['results'])
+
+        '''
+        Let's take a modular approach and extract Each plugin from the analysis.
+        Let's extract the plugins that are most relevant :
+        1. Cuckoo
+        2. pe32info
+        3. adobemalwareclassifier
+        4. exiftool
+        5. clamav
+        6. yarad
+        7. avg
+        8. peanomal
+        '''
+
 
 
 
