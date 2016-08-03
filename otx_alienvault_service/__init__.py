@@ -469,14 +469,71 @@ class AlienVaultOTXService(Service):
         Let's extract the plugins that are most relevant :
         1. Cuckoo
         2. pe32info
-        3. adobemalwareclassifier
-        4. exiftool
-        5. clamav
-        6. yarad
-        7. avg
-        8. peanomal
         '''
 
+        '''
+        1. cuckoo
+        '''
+        if 'cuckoo' in results_lst['analysis']['plugins']:
+            data_cuckoo = results_lst['analysis']['plugins']['cuckoo']['result']
+
+            data_cuckoo_netowrk = data_cuckoo['network']
+            self._add_result("Cuckoo Analysis", data_cuckoo['sha256'])
+
+            if data_cuckoo_netowrk['udp'] :
+                for i in data_cuckoo_netowrk['udp']:
+                    self._add_result("Cuckoo Analysis : UDP Traffic", data_cuckoo['sha256'], i)
+
+            if  data_cuckoo_netowrk['icmp']:
+                for i in data_cuckoo_netowrk['icmp']:
+                    self._add_result("Cuckoo Analysis : icmp Traffic", data_cuckoo['sha256'], i)
+
+            if  data_cuckoo_netowrk['http']:
+                for i in data_cuckoo_netowrk['http']:
+                    self._add_result("Cuckoo Analysis : http Traffic", data_cuckoo['sha256'], i)
+
+            if  data_cuckoo_netowrk['smtp']:
+                for i in data_cuckoo_netowrk['smtp']:
+                    self._add_result("Cuckoo Analysis : smtp Traffic", data_cuckoo['sha256'], i)
+
+            if  data_cuckoo_netowrk['hosts']:
+                for i in data_cuckoo_netowrk['hosts']:
+                    self._add_result("Cuckoo Analysis : hosts Traffic", data_cuckoo['sha256'], i)
+
+            if  data_cuckoo_netowrk['dns']:
+                for i in data_cuckoo_netowrk['dns']:
+                    self._add_result("Cuckoo Analysis : dns Traffic", data_cuckoo['sha256'], i)
+
+            if  data_cuckoo_netowrk['domains']:
+                for i in data_cuckoo_netowrk['domains']:
+                    self._add_result("Cuckoo Analysis : domains Traffic", data_cuckoo['sha256'], i)
+
+            data_cuckoo = results_lst['analysis']['plugins']['cuckoo']['result']
+            if  data_cuckoo['dropped']:
+                data_cuckoo_dropped = data_cuckoo['dropped']
+                for j in data_cuckoo_dropped:
+                    self._add_result("Cuckoo Analysis : Dropped Artifacts",data_cuckoo['sha256'],j)
+        '''
+        2. pe32info
+        '''
+        if 'pe32info' in results_lst['analysis']['plugins']:
+            data_pe32info = results_lst['analysis']['plugins']['pe32info']['results']
+            if data_pe32info['richhash']:
+                richhash = data_pe32info['richhash']
+            else:
+                richhash = str(filehash)
+
+            if data_pe32info['pdbinfo']:
+                for i in data_pe32info['pdbinfo']:
+                    self._add_result("PE32Info : pdb info", richhash, i)
+
+            if data_pe32info['exports']:
+                for i in data_pe32info['exports']:
+                    self._add_result("PE32Info : EXPORTS", richhash, i)
+
+            if data_pe32info['imports']:
+                for i in data_pe32info['imports']:
+                    self._add_result("PE32Info : IMPORTS", richhash, i)
 
 
 
