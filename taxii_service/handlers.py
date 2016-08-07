@@ -98,22 +98,23 @@ def poll_taxii_feeds(feeds, analyst, begin=None, end=None):
                                      feed_name, akey, acert, subID, analyst,
                                      user, pword, ecert, ekey, begin, end)
 
+        fails = result['failures']
         results['polls'].append(result)
-        result['failures'] = ", ".join(result['failures'])
+        fails = "<br>".join(cgi.escape(x) for x in fails)
 
-        if not result['failures']:
+        if not fails:
             success_feeds.append("%s - %s" % (feed[0], feedc['feedname']))
         else:
             results['status'] = False
-            msg = " Feed '%s' failed - %s<br>"
+            msg = " Feed '%s' failed <br><br>%s<br><br>"
             if len(success_feeds) == 0:
                 msg += "%s feeds were processed successfully%s"
             elif len(success_feeds) == 1:
                 msg += "%s feed was processed successfully: %s"
             else:
                 msg += "%s feeds were processed successfully: %s"
-            msg = msg % (("%s - %s" % (feed[0], feedc['feedname'])),
-                         cgi.escape(result['failures']),
+
+            msg = msg % (("%s - %s" % (feed[0], feedc['feedname'])), fails,
                          len(success_feeds), ", ".join(success_feeds))
             results['msg'] = result['msg'] + msg
             results['all_fail'] = len(success_feeds) == False
@@ -173,8 +174,9 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
               "end" (string) - Inclusive end component of the timerange that was polled
               "poll_time" (:class:`datetime.datetime`) - Datetime the feed was polled
               "taxii_msg_id" (string) - TAXII Message ID of the poll
-              "host" (string) - Hostname of the TAXII server that was polled
+              "source" (string) - Hostname of the TAXII server that was polled
               "feed" (string) - Name of the TAXII feed/collection that was polled
+                                or name of the file that was uploaded
               "analyst" (string) - Userid of the anaylst that initiated the poll
               "msg" (string) - OPTIONAL - Error message
     """
@@ -185,7 +187,7 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
             'blocks': [],
             'start': start,
             'end': end,
-            'host': hostname,
+            'source': hostname,
             'feed': feed,
             'analyst': analyst,
             'msg': ''
@@ -235,11 +237,21 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
         ret['failures'].append("Bad timestamp(s)")
         return ret
 
-    # subID must be none if not provided
+    # subID & port must be none if not provided
     if not subID:
         subID = None
+    if not port:
+        port = None
 
+    # Instantiate TAXII client class
     client = tc.HttpClient()
+
+    # Setup proxy communication, if needed
+    if settings.HTTP_PROXY:
+        proxy = settings.HTTP_PROXY
+        if not proxy.startswith('http://'):
+            proxy = 'http://' + proxy
+        client.setProxy(proxy)
 
     # Setup client authentication
     if https:
@@ -254,18 +266,6 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
     elif user:
         client.setAuthType(tc.HttpClient.AUTH_BASIC)
         client.setAuthCredentials({'username': user, 'password': pword})
-    else:
-        ret['failures'].append("Insufficient Authentication Data")
-        return ret
-
-    if not port:
-        port = None
-
-    if settings.HTTP_PROXY:
-        proxy = settings.HTTP_PROXY
-        if not proxy.startswith('http://'):
-            proxy = 'http://' + proxy
-        client.setProxy(proxy)
 
     crits_taxii = taxii.Taxii()
     crits_taxii.runtime = runtime
@@ -273,8 +273,8 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
     crits_taxii.feed = hostname + ':' + feed
 
     # if version=0, Poll using 1.1 then 1.0 if that fails.
-    status = ""
     while True:
+        status = ""
         if version in ('0', '1.1'):
             if subID:
                 pprams = None
@@ -327,8 +327,11 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
             taxii_msg = t.get_message_from_http_response(response,
                                                          poll_msg.message_id)
 
-            if response.getcode() != 200 or taxii_msg.message_type == tm_.MSG_STATUS_MESSAGE:
-                status += "%s: %s" % (taxii_msg.status_type, taxii_msg.message)
+            if (response.getcode() != 200
+                or taxii_msg.message_type == tm_.MSG_STATUS_MESSAGE):
+                status += "Server Response: %s"
+                msg = (taxii_msg.status_type, taxii_msg.message)
+                status = status % ' - '.join(x for x in msg if x)
             else:
                 break
 
@@ -338,10 +341,10 @@ def execute_taxii_agent(hostname=None, https=None, port=None, path=None,
                 status += ". Try selecting TAXII Version 1.1 in settings."
 
         if version == '0':
-            status = 'TAXII 1.1 ' + status + '<br><br>TAXII 1.0 '
+            ret['failures'].append('TAXII 1.1 ' + status)
             version = '1.0' # try '1.0'
         else:
-            ret['failures'].append(status)
+            ret['failures'].append('TAXII %s ' % version + status)
             return ret
 
     valid = tm_.validate_xml(taxii_msg.to_xml())
@@ -411,7 +414,7 @@ def parse_content_block(content_block, tm_, privkey=None, pubkey=None):
         f.close()
         return parse_content_block(tm_.ContentBlock.from_xml(new_block),
                                    tm_, privkey, pubkey)
-    elif binding == t.CB_STIX_XML_111:
+    elif binding in (t.CB_STIX_XML_111, "urn:stix.mitre.org:xml:1.2"):
         f = BytesIO(content_block.content)
         data = f.read()
         f.close()
@@ -515,8 +518,9 @@ def generate_import_preview(poll_id, analyst):
               "end" (string) - Inclusive end component of the timerange that was polled
               "poll_time" (:class:`datetime.datetime`) - Datetime the feed was polled
               "taxii_msg_id" (string) - TAXII Message ID of the poll
-              "host" (string) - Hostname of the TAXII server that was polled
+              "source" (string) - Source from which the content came
               "feed" (string) - Name of the TAXII feed/collection that was polled
+                                or name of the file that was uploaded
               "analyst" (string) - Userid of the anaylst that initiated the poll
     """
     tsvc = get_config('taxii_service')
@@ -539,7 +543,7 @@ def generate_import_preview(poll_id, analyst):
             'end': times[1],
             'poll_time': blocks[0].poll_time,
             'taxii_msg_id': blocks[0].taxii_msg_id,
-            'host': blocks[0].hostname,
+            'source': blocks[0].hostname,
             'feed': blocks[0].feed,
             'analyst': blocks[0].analyst
           }
@@ -631,7 +635,7 @@ def get_saved_polls(action, poll_id=None):
         if time not in polls:
             polls[time] = {'poll_id': poll_id,
                            'msg_id': block.taxii_msg_id,
-                           'host': block.hostname,
+                           'source': block.hostname,
                            'feed': block.feed,
                            'timerange': block.timerange,
                            'analyst': block.analyst,
@@ -743,7 +747,10 @@ def import_content_blocks(block_ids, action, analyst):
             if tsrvs[svr].get('hostname') == block.hostname:
                 for feed in tsrvs[svr]['feeds']:
                     if tsrvs[svr]['feeds'][feed]['feedname'] == block.feed:
-                        source = tsrvs[svr]['feeds'][feed]['source']
+                        feed_cfg = tsrvs[svr]['feeds'][feed]
+                        source = feed_cfg['source']
+                        default_ci = (feed_cfg.get('def_conf', 'unknown'),
+                                      feed_cfg.get('def_impact', 'unknown'))
                         break
                 if source:
                     break
@@ -752,9 +759,10 @@ def import_content_blocks(block_ids, action, analyst):
                 source = block.hostname.split(' - Source: ')[1]
             except:
                 source = block.hostname
+            default_ci = ('unknown', 'unknown')
 
-        objs = import_standards_doc(data, analyst, method, ref=reference,
-                                    hdr_events=hdr_events, source=source)
+        objs = import_standards_doc(data, analyst, method, reference,
+                                    hdr_events, default_ci, source)
 
         if not objs['success']:
             ret['failures'].append((objs['reason'],
@@ -965,6 +973,14 @@ def to_stix_indicator(obj):
     obs, releas = to_cybox_observable(obj)
     for ob in obs:
         ind.add_observable(ob)
+        try:
+            ind.confidence = obj.confidence.rating.title()
+        except:
+            pass
+        try:
+            ind.likely_impact = obj.impact.rating.title()
+        except:
+            pass
     #TODO: determine if a source wants its name shared. This will
     #   probably have to happen on a per-source basis rather than a per-
     #   object basis.
@@ -1250,11 +1266,12 @@ def run_taxii_service(analyst, obj, rcpts, preview,
     # Instantiate TAXII client class
     client = tc.HttpClient()
 
-    # Get Proxy settings
+    # Setup proxy communication, if needed
     if settings.HTTP_PROXY:
         proxy = settings.HTTP_PROXY
         if not proxy.startswith('http://'):
             proxy = 'http://' + proxy
+        client.setProxy(proxy)
 
     # The minimum required info has been provided by user via the TAXII form.
     # Form configuration and validation ensures the form is valid.
@@ -1298,7 +1315,6 @@ def run_taxii_service(analyst, obj, rcpts, preview,
         # Setup client authentication and proxy communication
         if https:
             client.setUseHttps(True)
-        client.setProxy(proxy)
         if akey and lcert and user:
             client.setAuthType(tc.HttpClient.AUTH_CERT_BASIC)
             client.setAuthCredentials({'key_file': akey, 'cert_file': lcert,
@@ -1309,9 +1325,6 @@ def run_taxii_service(analyst, obj, rcpts, preview,
         elif user:
             client.setAuthType(tc.HttpClient.AUTH_BASIC)
             client.setAuthCredentials({'username': user, 'password': pword})
-        else:
-            ret['failed_rcpts'].append((feed, 'Insufficient Authentication Data'))
-            continue
 
         # generate and send inbox messages
         # one message per feed, with appropriate TargetFeed header specified
@@ -1748,7 +1761,7 @@ def update_taxii_service_config(post_data, analyst):
     return status
 
 def import_standards_doc(data, analyst, method, ref=None, hdr_events=False,
-                         source=None, preview_only=False):
+                         def_ci=None, source=None, preview_only=False):
     """
     Import a standards document into CRITs.
 
@@ -1763,6 +1776,8 @@ def import_standards_doc(data, analyst, method, ref=None, hdr_events=False,
     :type ref: str
     :param hdr_events: Whether or not we should make an Event for this document.
     :type hdr_events: bool
+    :param def_ci: The default Indicator (confidence, impact).
+    :type def_ci: tuple
     :param source: The name of the source who provided this document.
     :type source: str
     :param preview_only: If True, nothing is imported and a preview is returned
@@ -1782,7 +1797,7 @@ def import_standards_doc(data, analyst, method, ref=None, hdr_events=False,
           }
 
     try:
-        parser = STIXParser(data, analyst, method, preview_only)
+        parser = STIXParser(data, analyst, method, def_ci, preview_only)
         parser.parse_stix(reference=ref, hdr_events=hdr_events, source=source)
         parser.relate_objects()
     except STIXParserException, e:
