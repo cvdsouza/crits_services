@@ -524,10 +524,6 @@ class AlienVaultOTXService(Service):
                 richhash = str(filehash)
             self._info("Rich Hash "+richhash)
 
-            if data_pe32info['pdbinfo']:
-                for i in data_pe32info['pdbinfo']:
-                    self._add_result("PE32Info : pdb info", richhash, i)
-
             if data_pe32info['exports']:
                 for i in data_pe32info['exports']:
                     self._add_result("PE32Info : EXPORTS", richhash, i)
@@ -535,6 +531,10 @@ class AlienVaultOTXService(Service):
             if data_pe32info['imports']:
                 for i in data_pe32info['imports']:
                     self._add_result("PE32Info : IMPORTS", richhash, i)
+
+            if data_pe32info['pdbinfo']:
+                for i in data_pe32info['pdbinfo']:
+                    self._add_result("PE32Info : pdb info", richhash, i)
 
 
 
