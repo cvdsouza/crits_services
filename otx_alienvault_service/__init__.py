@@ -522,6 +522,7 @@ class AlienVaultOTXService(Service):
                 richhash = data_pe32info['richhash']
             else:
                 richhash = str(filehash)
+            self._info("Rich Hash "+richhash)
 
             if data_pe32info['pdbinfo']:
                 for i in data_pe32info['pdbinfo']:
