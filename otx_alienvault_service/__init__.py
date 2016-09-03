@@ -532,9 +532,12 @@ class AlienVaultOTXService(Service):
                 for i in data_pe32info['imports']:
                     self._add_result("PE32Info : IMPORTS", richhash, i)
 
-            if data_pe32info['pdbinfo']:
-                for i in data_pe32info['pdbinfo']:
-                    self._add_result("PE32Info : pdb info", richhash, i)
+            if len(data_pe32info['pdbinfo']) > 1:
+                if data_pe32info['pdbinfo']:
+                    for i in data_pe32info['pdbinfo']:
+                        self._add_result("PE32Info : pdb info", richhash, i)
+            else:
+                self._add_result("PE32Info : pdb info", richhash, data_pe32info['pdbinfo'])
 
 
 
