@@ -535,10 +535,10 @@ class AlienVaultOTXService(Service):
             if len(data_pe32info['pdbinfo']) > 1:
                 if data_pe32info['pdbinfo']:
                     for i in data_pe32info['pdbinfo']:
-                        self._add_result("PE32Info : pdb info", richhash, i)
+                        self._add_result("PE32Info : pdb info", i)
             else:
                 self._info("Info : "+ richhash)
-                self._add_result("PE32Info : pdb info", richhash,"".join(str(data_pe32info['pdbinfo'])))
+                self._add_result("PE32Info : pdb info","".join(str(data_pe32info['pdbinfo'])))
 
 
 
