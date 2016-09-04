@@ -471,17 +471,19 @@ class ThreatGRIDService(Service):
 
 
                         result1 = {}
-                        for i in item['children']:
-                            result1 = i
+                        if item['children']:
 
-                        data = {
-                            "PID": item.get('pid'),
-                            "Children" : result1,
-                            "Analysis Reason": item.get('analyzed_because')
-                        }
+                            for i in item['children']:
+                                result1 = i
 
-                        self._add_result('ThreatGrid Process Results', item.get('process_name', ''), data)
-                        self._notify()
+                            data = {
+                                "PID": item.get('pid'),
+                                "Children" : result1,
+                                "Analysis Reason": item.get('analyzed_because')
+                            }
+
+                            self._add_result('ThreatGrid Process Results', item.get('process_name', ''), data)
+                            self._notify()
                 elif response.get('error'):
                     self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
                 else:
