@@ -21,7 +21,10 @@ from crits.services.core import Service, ServiceConfigError
 
 
 from . import forms
+'''
+Author : Clinton Dsouza
 
+'''
 logger = logging.getLogger(__name__)
 
 class AlienVaultOTXService(Service):
