@@ -543,8 +543,6 @@ class AlienVaultOTXService(Service):
 
                 self._add_result("PE32Info : pdb info", data_pe32info['pdbinfo'])
 
-
-
     def run(self, obj, config):
         if obj._meta['crits_type'] == 'IP':
             self.check_indicators_ip(obj, config)
