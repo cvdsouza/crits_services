@@ -538,7 +538,7 @@ class AlienVaultOTXService(Service):
                         self._add_result("PE32Info : pdb info", i)
             else:
 
-                self._add_result("PE32Info : pdb info", " ".join(str(data_pe32info['pdbinfo'])))
+                self._add_result("PE32Info : pdb info", data_pe32info['pdbinfo'])
 
 
 
