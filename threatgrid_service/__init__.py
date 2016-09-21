@@ -503,42 +503,47 @@ class ThreatGRIDService(Service):
                     item = response['data']['items'][num]
 
                     filesChecked = {}
-                    for i in item['files_checked']:
-                        filesChecked = i
+                    if 'files_checked' in item or \
+                                    'files_deleted' in item or \
+                                    'files_modified' in item or \
+                                    'files_created' in item or \
+                                    'files_read' in item :
+                        for i in item['files_checked']:
+                            filesChecked = i
 
-                    filesDeleted = {}
-                    for i in item['files_deleted']:
-                        filesDeleted = i
+                        filesDeleted = {}
+                        for i in item['files_deleted']:
+                            filesDeleted = i
 
-                    filesModified = {}
-                    for i in item['files_modified']:
-                        filesModified = i
+                        filesModified = {}
+                        for i in item['files_modified']:
+                            filesModified = i
 
-                    filesCreated = {}
-                    for i in item['files_created']:
-                        filesCreated = i
+                        filesCreated = {}
+                        for i in item['files_created']:
+                            filesCreated = i
 
-                    filesRead = {}
-                    for i in item['files_read']:
-                        filesRead = i
+                        filesRead = {}
+                        for i in item['files_read']:
+                            filesRead = i
 
-                    if (item.get('files_modified') or item.get('files_created')):
-                        registry_actions = 'True'
-                    else:
-                        registry_actions = 'False'
+                        if (item.get('files_modified') or item.get('files_created')):
+                            registry_actions = 'True'
+                        else:
+                            registry_actions = 'False'
 
-                    data = {
-                        "PID" : item.get('pid'),
-                        "File Actions Observed": registry_actions,
-                        "Files Checked" : filesChecked,
-                        "Files Deleted" :filesDeleted ,
-                        "Files Modified" : filesModified ,
-                        "Files Created" : filesCreated,
-                        "Files Read" : filesRead ,
-                    }
+                        data = {
+                            "PID" : item.get('pid'),
+                            "File Actions Observed": registry_actions,
+                            "Files Checked" : filesChecked,
+                            "Files Deleted" :filesDeleted ,
+                            "Files Modified" : filesModified ,
+                            "Files Created" : filesCreated,
+                            "Files Read" : filesRead ,
+                        }
 
-                    self._add_result('ThreatGrid Process Files Activity', item.get('process_name', ''), data)
-                    self._notify()
+                        self._add_result('ThreatGrid Process Files Activity', item.get('process_name', ''), data)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
