@@ -678,15 +678,16 @@ class ThreatGRIDService(Service):
 
                     registry_keys_read_name = {}
                     registry_keys_read_value = {}
-                    for i in item['registry_keys_read']:
-                        registry_keys_read_name = i['key_name']
-                        registry_keys_read_value = i['key_value']
-                    data={
-                        'Key Value': registry_keys_read_value
-                    }
+                    if 'registry_keys_read' in item:
+                        for i in item['registry_keys_read']:
+                            registry_keys_read_name = i['key_name']
+                            registry_keys_read_value = i['key_value']
+                        data={
+                            'Key Value': registry_keys_read_value
+                        }
 
-                    self._add_result('ThreatGrid Registry Keys Read', registry_keys_read_name,data)
-                    self._notify()
+                        self._add_result('ThreatGrid Registry Keys Read', registry_keys_read_name,data)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
@@ -705,15 +706,16 @@ class ThreatGRIDService(Service):
 
                     registry_keys_access = {}
                     files_modified = {}
-                    for i in item['registry_keys_opened']:
-                        registry_keys_access = i['name']
-                        files_modified = i['access']
-                    data = {
-                        'Access': files_modified
-                    }
+                    if 'registry_keys_opened' in item:
+                        for i in item['registry_keys_opened']:
+                            registry_keys_access = i['name']
+                            files_modified = i['access']
+                        data = {
+                            'Access': files_modified
+                        }
 
-                    self._add_result('ThreatGrid Registry Keys Opened', registry_keys_access, data)
-                    self._notify()
+                        self._add_result('ThreatGrid Registry Keys Opened', registry_keys_access, data)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
@@ -732,15 +734,16 @@ class ThreatGRIDService(Service):
 
                     registry_keys_read_name = {}
                     registry_keys_read_value = {}
-                    for i in item['registry_keys_created']:
-                        registry_keys_read_name = i['name']
-                        registry_keys_read_value = i['access']
-                    data = {
-                        'Access': registry_keys_read_value
-                    }
+                    if 'registry_keys_created' in item:
+                        for i in item['registry_keys_created']:
+                            registry_keys_read_name = i['name']
+                            registry_keys_read_value = i['access']
+                        data = {
+                            'Access': registry_keys_read_value
+                        }
 
-                    self._add_result('ThreatGrid Registry Keys Created', registry_keys_read_name)
-                    self._notify()
+                        self._add_result('ThreatGrid Registry Keys Created', registry_keys_read_name)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
@@ -759,12 +762,12 @@ class ThreatGRIDService(Service):
                     item = response['data']['items'][num]
 
                     registry_keys_read_name = {}
+                    if 'registry_keys_deleted' in item:
+                        for i in item['registry_keys_deleted']:
+                            registry_keys_read_name = i
 
-                    for i in item['registry_keys_deleted']:
-                        registry_keys_read_name = i
-
-                    self._add_result('ThreatGrid Registry Keys Deleted', registry_keys_read_name)
-                    self._notify()
+                        self._add_result('ThreatGrid Registry Keys Deleted', registry_keys_read_name)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
@@ -783,12 +786,13 @@ class ThreatGRIDService(Service):
 
                     registry_keys_read_name = {}
                     registry_keys_read_value = {}
-                    for i in item['registry_keys_modified']:
-                        if(i['name']):
-                            registry_keys_read_name = i['name']
+                    if 'registry_keys_modified' in item:
+                        for i in item['registry_keys_modified']:
+                            if(i['name']):
+                                registry_keys_read_name = i['name']
 
-                    self._add_result('ThreatGrid Registry Keys Modified', registry_keys_read_name)
-                    self._notify()
+                        self._add_result('ThreatGrid Registry Keys Modified', registry_keys_read_name)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
