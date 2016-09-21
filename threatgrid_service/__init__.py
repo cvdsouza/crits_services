@@ -19,7 +19,7 @@ class ThreatGRIDService(Service):
     """
     ThreatGRID interoperability with CRITS.
 
-    Requires an API key from the specified ThreatGRID applicance.
+    Requires an API key from the specified ThreatGRID appliance.
     """
 
     name = 'threatgrid'
@@ -471,19 +471,20 @@ class ThreatGRIDService(Service):
 
 
                         result1 = {}
-                        if item['children']:
+                        if 'children' in item:
+                            if item['children']:
 
-                            for i in item['children']:
-                                result1 = i
+                                for i in item['children']:
+                                    result1 = i
 
-                            data = {
-                                "PID": item.get('pid'),
-                                "Children" : result1,
-                                "Analysis Reason": item.get('analyzed_because')
-                            }
+                                data = {
+                                    "PID": item.get('pid'),
+                                    "Children" : result1,
+                                    "Analysis Reason": item.get('analyzed_because')
+                                }
 
-                            self._add_result('ThreatGrid Process Results', item.get('process_name', ''), data)
-                            self._notify()
+                                self._add_result('ThreatGrid Process Results', item.get('process_name', ''), data)
+                                self._notify()
                 elif response.get('error'):
                     self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
                 else:
