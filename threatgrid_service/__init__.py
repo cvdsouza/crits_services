@@ -607,48 +607,50 @@ class ThreatGRIDService(Service):
             if response.get('data'):
                 for num in response.get('data', {}).get('items'):
                     item = response['data']['items'][num]
-                    startup_info = response['data']['items'][num]['startup_info']
+
 
                     dll_path = ""
                     command_line = ""
                     window_title = ""
                     current_directory = ""
                     image_pathname=""
+                    if 'startup_info' in response['data']['items'][num]:
 
-                    dll_path_list = {}
-                    if 'dll_path' in startup_info:
-                        dll_path = startup_info['dll_path']
-                        dll_path_list = dll_path.split(';')
+                        startup_info = response['data']['items'][num]['startup_info']
+                        dll_path_list = {}
+                        if 'dll_path' in startup_info:
+                            dll_path = startup_info['dll_path']
+                            dll_path_list = dll_path.split(';')
 
-                    command_line_list = {}
-                    if 'command_line' in startup_info:
-                        command_line = startup_info['command_line']
-                        command_line_list = command_line.split(';')
+                        command_line_list = {}
+                        if 'command_line' in startup_info:
+                            command_line = startup_info['command_line']
+                            command_line_list = command_line.split(';')
 
-                    window_title_list = {}
-                    if 'window_title' in startup_info:
-                        window_title = startup_info['window_title']
-                        window_title_list = window_title.split(';')
+                        window_title_list = {}
+                        if 'window_title' in startup_info:
+                            window_title = startup_info['window_title']
+                            window_title_list = window_title.split(';')
 
-                    current_directory_list = {}
-                    if 'current_directory' in startup_info:
-                        current_directory = startup_info['current_directory']
-                        current_directory_list = current_directory.split(';')
+                        current_directory_list = {}
+                        if 'current_directory' in startup_info:
+                            current_directory = startup_info['current_directory']
+                            current_directory_list = current_directory.split(';')
 
-                    image_pathname_list = {}
-                    if 'image_pathname' in startup_info:
-                        image_pathname = startup_info['image_pathname']
-                        image_pathname_list = image_pathname.split(';')
+                        image_pathname_list = {}
+                        if 'image_pathname' in startup_info:
+                            image_pathname = startup_info['image_pathname']
+                            image_pathname_list = image_pathname.split(';')
 
-                    data = {
-                        "dll path": dll_path,
-                        "command line ": command_line,
-                        "window title" : window_title,
-                        "current directory": current_directory,
-                        "image_pathname" : image_pathname,
-                    }
-                    self._add_result('ThreadGrid Process Startup Info', item.get('process_name', ''), data)
-                    self._notify()
+                        data = {
+                            "dll path": dll_path,
+                            "command line ": command_line,
+                            "window title" : window_title,
+                            "current directory": current_directory,
+                            "image_pathname" : image_pathname,
+                        }
+                        self._add_result('ThreadGrid Process Startup Info', item.get('process_name', ''), data)
+                        self._notify()
             elif response.get('error'):
                 self._info('No processes were found for ThreatGRID id:{}'.format(tg_id))
             else:
