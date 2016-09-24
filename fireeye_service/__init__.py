@@ -19,7 +19,7 @@ class FireeyeService(Service):
 
     name = 'Fireeye_Sandbox'
     version = '1.1.0'
-    supported_types = ['Sample']
+    supported_types = ['Sample', 'Indicator']
     description = "Analyze a sample using the FireyeMAS appliance through the Fireeye CMS."
 
     @staticmethod

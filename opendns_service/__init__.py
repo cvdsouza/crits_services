@@ -65,6 +65,16 @@ class OpenDNSService(Service):
     def _replace(self, string):
         return string.replace("_", " ")
 
+    @property
+    def proxies(self):
+        proxy_host = self.config.get('proxy_host')
+        proxy_port = self.config.get('proxy_port')
+        if proxy_host:
+            proxy = proxy_host + ':' + str(proxy_port)
+        else:
+            proxy = ''
+        return {'http': proxy, 'https': proxy}
+
     def run(self, obj, config):
         token = config.get('Investigate_API_Token', '')
         uri = config.get('Investigate_URI', '')
@@ -96,7 +106,7 @@ class OpenDNSService(Service):
 
         try:
             for r in reqs.keys():
-                resp = requests.get(uri + reqs[r], headers=headers)
+                resp = requests.get(uri + reqs[r], headers=headers, proxies=self.proxies)
 
                 if resp.status_code == 204:
                     logger.error("No content status returned from request: %s" % (r))
