@@ -152,6 +152,7 @@ class PassiveTotalService(Service):
             query = list()
             for field in ['sender', 'to', 'from_address']:
                 tmp = getattr(obj, field)
+                self._info("Values: ",str(tmp))
                 if not tmp or tmp == '':
                     continue
                 query.append(tmp)
