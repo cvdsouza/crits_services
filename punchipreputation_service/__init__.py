@@ -13,8 +13,8 @@ from crits.services.core import Service, ServiceConfigError
 logger = logging.getLogger(__name__)
 
 class PunchService(Service):
-    name = "punch++"
-    version = '1.0.0'
+    name = "punch_plus_plus_service"
+    version = '1.0.1'
     supported_types = ['IP','Indicator']
     description = "Analyze IP reputation or malicious URL pcre"
 
