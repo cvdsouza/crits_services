@@ -133,7 +133,7 @@ class PunchService(Service):
         url = config['url']
         api = config['apiKey']
 
-        self._info("IP Address : " + str(obj.ip))
+        self._info("IP Address : " + str(obj.value))
 
         iprep_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
 
