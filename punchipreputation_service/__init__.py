@@ -24,7 +24,7 @@ class PunchService(Service):
     def parse_config(config):
         # Must have both Punch API key and Punch URL .
         if (config['url'] and not config['apiKey']) :
-            raise ServiceConfigError("Must specify both DT API and username.")
+            raise ServiceConfigError("Must specify both Punch++ URL and API Key.")
 
     @staticmethod
     def get_config(existing_config):
