@@ -149,9 +149,10 @@ class PunchService(Service):
                 if 'pcre' in subval:
                     self._info(subval['pcre'])
                     pcrematch = subval['pcre']
+                    self._add_result('PCRE Match', subval['pcre'])
 
 
-            self._add_result('PCRE Match', pcrematch)
+
         else:
             self._add_result ('PCRE Match NOT FOUND')
 
