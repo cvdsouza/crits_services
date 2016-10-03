@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class PunchService(Service):
     name = "punchIPRep_service"
     version = '1.0.0'
-    supported_types = ['IP']
+    supported_types = ['IP','Indicator']
     description = "Analyze IP reputation or malicious URL pcre"
 
     @staticmethod
@@ -123,7 +123,39 @@ class PunchService(Service):
                 }
             self._add_result("Geo Location","Location" ,geo)
 
+    def pcre_match(self, obj, config):
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
+        url = config['url']
+        api = config['apiKey']
+
+        self._info("IP Address : " + str(obj.ip))
+
+        iprep_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
+
+        r = requests.get(iprep_url_check, verify=False, proxies=proxies)
+        if r.status_code != 200:
+            self._error("Response code not 200")
+            return
+
+        results = r.json()
+
+        if 'pcre' in results[1]:
+            for subval in results:
+                if 'pcre' in subval:
+                    self._add_result('PCRE Match',subval['pcre'],subval['description'])
+
+
+
     def run(self, obj, config):
 
-        self.iprep_check(obj, config)
+        if obj._meta['crits_type'] == 'IP':
+            self.iprep_check(obj, config)
+        elif obj._meta['crits_type'] == 'Indicator':
+            self.pcre_match(obj,config)
+
 
