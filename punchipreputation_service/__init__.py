@@ -13,7 +13,7 @@ from crits.services.core import Service, ServiceConfigError
 logger = logging.getLogger(__name__)
 
 class PunchService(Service):
-    name = "punchIPRep_service"
+    name = "punch++"
     version = '1.0.0'
     supported_types = ['IP','Indicator']
     description = "Analyze IP reputation or malicious URL pcre"
@@ -55,34 +55,6 @@ class PunchService(Service):
                                  'config_error': None})
         form = forms.PunchplusplusConfigForm
         return form, html
-    '''
-    @staticmethod
-    def save_runtime_config(config):
-        if config['url']:
-            del config['url']
-        if config['apiKey']:
-            del config['apiKey']
-
-    @staticmethod
-    def bind_runtime_form(analyst, config):
-
-        form = forms.PunchplusplusRunForm(pydat_url=config['url'],
-                                  dt_api_key=config['apiKey'],
-                                  data=config)
-        return form
-
-    @classmethod
-    def generate_runtime_form(self, analyst, config, crits_type, identifier):
-        html = render_to_string("services_run_form.html",
-                                {'name': self.name,
-                                 'form': forms.PunchplusplusRunForm(url=config['url'],
-                                                            apiKey=config['apiKey']),
-                                 'crits_type': crits_type,
-                                 'identifier': identifier})
-        return html
-    '''
-
-
 
     def iprep_check(self,obj,config):
 
@@ -150,9 +122,6 @@ class PunchService(Service):
                     self._info(subval['pcre'])
                     pcrematch = subval['pcre']
                     self._add_result('PCRE Match', subval['pcre'])
-
-
-
         else:
             self._add_result ('PCRE Match NOT FOUND')
 
