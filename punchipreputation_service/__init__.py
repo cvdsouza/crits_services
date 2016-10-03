@@ -143,13 +143,14 @@ class PunchService(Service):
             return
 
         results = r.json()
-        pcrematch = {}
+        pcrematch = []
         if 'pcre' in results[1]:
             for subval in results:
                 if 'pcre' in subval:
                     pcrematch = subval['pcre']
 
-            self._add_result('PCRE Match', pcrematch)
+            for i in pcrematch:
+                self._add_result('PCRE Match', i)
         else:
             self._add_result ('PCRE Match NOT FOUND')
 
