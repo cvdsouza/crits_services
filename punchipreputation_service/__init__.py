@@ -119,7 +119,7 @@ class PunchService(Service):
         results = r.json()
         pcrematch = []
         try:
-            if 'pcre' in results[1]:
+            if results[1]:
                 for subval in results:
                     if 'pcre' in subval:
                         self._info(subval['pcre'])
