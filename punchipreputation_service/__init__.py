@@ -118,15 +118,15 @@ class PunchService(Service):
 
         results = r.json()
         pcrematch = []
-        if results[1]:
-            for subval in results:
-                if 'pcre' in subval:
-                    self._info(subval['pcre'])
-                    pcrematch = subval['pcre']
-                    self._add_result('PCRE Match', subval['pcre'])
-        else:
-            self._add_result ('PCRE Match NOT FOUND')
-
+        try:
+            if 'pcre' in results[1]:
+                for subval in results:
+                    if 'pcre' in subval:
+                        self._info(subval['pcre'])
+                        pcrematch = subval['pcre']
+                        self._add_result('PCRE Match', subval['pcre'])
+        except IndexError:
+            self._add_result('No PCRE Match')
 
 
     def run(self, obj, config):
