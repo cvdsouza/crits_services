@@ -10,6 +10,8 @@ from django.template.loader import render_to_string
 from . import forms
 from crits.services.core import Service, ServiceConfigError
 
+__author__ =  "Clinton Dsouza"
+
 logger = logging.getLogger(__name__)
 
 class PunchService(Service):
