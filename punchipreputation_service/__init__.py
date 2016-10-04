@@ -119,7 +119,8 @@ class PunchService(Service):
         results = r.json()
         pcrematch = []
         try:
-            if results[1]:
+            bodyFlag = True if 'pcre' in results else False
+            if True:
                 for subval in results:
                     if 'pcre' in subval:
                         self._info(subval['pcre'])
