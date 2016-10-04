@@ -9,6 +9,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from . import forms
 from crits.services.core import Service, ServiceConfigError
+from types import *
 
 __author__ =  "Clinton Dsouza"
 
@@ -120,7 +121,7 @@ class PunchService(Service):
         pcrematch = []
         try:
             bodyFlag = True if 'pcre' in results else False
-            if bodyFlag:
+            if type(results) is ListType:
                 for subval in results:
                     if 'pcre' in subval:
                         self._info(subval['pcre'])
