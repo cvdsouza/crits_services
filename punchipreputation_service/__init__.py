@@ -80,13 +80,18 @@ class PunchService(Service):
         if r.status_code != 200:
             self._error("Response code not 200.")
             return
-
+        data = {}
         results = r.json()
         self._add_result("Origin", results['origin'],)
         self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(obj.ip)+"?apikey="+api)
         for mkey, subdict in results.iteritems():
             if 'context' in subdict:
-                self._add_result("IP Context", mkey, ( subdict['source'], subdict['context'], subdict['last_seen']))
+                data ={
+                    "Source": subdict['source'],
+                    "Context": subdict['context'],
+                    "Last Seen" : subdict['last_seen']
+                }
+                self._add_result("IP Context", mkey, data)
 
         if 'MaxMind_Free_GeoIP' in results:
             geo={}
