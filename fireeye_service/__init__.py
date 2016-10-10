@@ -93,10 +93,12 @@ class FireeyeService(Service):
                 'force' : config['force']}
         return forms.FireeyeRunForm(machines=machines, data=data)
 
+    '''
     @staticmethod
     def valid_for(obj):
         if obj.filedata.grid_id == None:
             raise ServiceConfigError("Missing filedata.")
+    '''
 
     @staticmethod
     def get_config_details(config):
@@ -209,6 +211,39 @@ class FireeyeService(Service):
         self.sc = sc
         self.task = task_id
 
+    def submit_url(self,obj):
+        timeout = self.config.get('timeout')
+        machine = self.config.get('machine', "")
+        sc = self.authentication
+        urlsample = str(obj.value)
+        headers = {'X-feApi-Token': sc, 'X-FeClient-Token': 'critsy test'}
+        json_option = {"application": "0",
+                       "timeout": str(timeout),
+                       "priority": "0",
+                       "profiles": [machine],
+                       "analysistype": "2",
+                       "force": self.config.get('force'),
+                       "prefetch": "1",
+                       "urls":[urlsample]}
+        jsondata = json.dumps(json_option)
+
+        r = requests.post(self.base_url + '/submissions/url',
+                          headers=headers,
+                          data=jsondata,
+                          verify=False,
+                          proxies=self.proxies)
+
+        if r.status_code != requests.codes.ok:
+            msg = "Failed to submit file to machine '%s'." % machine
+            self._error(msg)
+            self._debug(r.text)
+
+        task_id = r.json()[0]['id']
+        self._info("Submitted Task ID %s for machine %s" % (task_id, machine))
+        self.timeout = timeout
+        self.sc = sc
+        self.task = task_id
+
     #Does a loop check of up to five times to see if the analysis has been completed. If the the analysis is completed it grab the FE ID to pull back the xml report.
     def get_analysis(self):
         counter = 1
@@ -239,12 +274,52 @@ class FireeyeService(Service):
                 self._info("Submission not found for task %s" % self.task)
                 break
             first = False
+
+    def get_url_analysis(self):
+        counter = 1
+        headers = {'X-FEApi-Token': self.sc}
+        first = True
+        while counter <= 5:
+            r = requests.get(self.base_url + '/submissions/status/' + self.task, headers=headers, verify=False,
+                             proxies=self.proxies)
+            try:
+                self._info(" Submission status response %s" %r.json()['status'])
+
+                res = r.json()['status']
+            except TypeError as err:
+                res = r.text
+            if first is True:
+                time.sleep(self.timeout + 10)
+            if res == "Submission Done":
+                response_link = r.json()['response'][0]['link']
+                res_href = response_link['href']
+                complete = requests.get(self.base_url + res_href, headers=headers,
+                                        verify=False, proxies=self.proxies, stream=True)
+                analysis_xml = etree.parse(complete.raw)
+                root = analysis_xml.getroot()
+                analysis_id = root.find('{http://www.fireeye.com/alert/2013/AlertSchema}alert')
+                fe_id = analysis_id.attrib['id']
+                self._info("Analysis has been completed. FE_ID = %s" % fe_id)
+                self.fe_id = fe_id
+                break
+            elif res == "In Progress":
+                self._info("Analysis is still running for %s" % self.task)
+                time.sleep(30)
+                counter += 1
+            elif res == "Submission not found":
+                self._info("Submission not found for task %s" % self.task)
+                break
+            first = False
             
 
     #Retrieve the xml report and parsing out parts of the xml report. 
-    def get_report(self):
+    def get_report(self, obj):
         headers = {'X-FEApi-Token': self.sc}
-        r = requests.get(self.base_url + '/alerts?alert_id=' + self.fe_id + '&info_level=normal', headers=headers, verify=False, proxies=self.proxies, stream=True)
+        if obj._meta['crits_type'] == 'Sample':
+            r = requests.get(self.base_url + '/alerts?alert_id=' + self.fe_id + '&info_level=normal', headers=headers, verify=False, proxies=self.proxies, stream=True)
+        elif obj._meta['crits_type'] == 'Indicator':
+            r = requests.get(self.base_url + '/submissions/results/' + self.fe_id + '?info_level=normal', headers=headers,
+                             verify=False, proxies=self.proxies, stream=True)
         report_xml = etree.parse(r.raw)
         root_xml = report_xml.getroot()
         #Using xpath to drill into the specific nodes in the report. 
@@ -391,11 +466,19 @@ class FireeyeService(Service):
         self.config = config
         self.obj = obj
 
-        self.submit_sample(self.obj)
-        self._info("Submission Completed")
-        self.get_analysis()
-        self._info("Analysis Completed")
-        self.get_report()
+        if self.obj._meta['crits_type'] == 'Sample':
+            self.submit_sample(self.obj)
+            self._info("Submission Completed")
+            self.get_analysis()
+            self._info("Analysis Completed")
+
+        if self.obj._meta['crits_type'] == 'Indicator':
+            self.submit_url(self.obj)
+            self._info("Submission Completed")
+            self.get_url_analysis()
+            self._info("Analysis Completed")
+
+        self.get_report(self.obj)
         self._info("Report Generated")
         self.logout()
         self._info("Logged out now...")
