@@ -240,7 +240,9 @@ class FireeyeService(Service):
             self._error(msg)
             self._debug(r.text)
 
-        task_id = r.json()[0]['id']
+        response = r.json()
+
+        task_id = response['response'][0]['id']
         self._info("Submitted Task ID %s for machine %s" % (task_id, machine))
         self.timeout = timeout
         self.sc = sc
