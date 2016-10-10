@@ -216,7 +216,9 @@ class FireeyeService(Service):
         machine = self.config.get('machine', "")
         sc = self.authentication
         urlsample = str(obj.value)
-        headers = {'X-feApi-Token': sc, 'X-FeClient-Token': 'critsy test'}
+        headers = {'X-feApi-Token': sc,
+                   'X-FeClient-Token': 'critsy test',
+                   'Content-Type':'application/json'}
         json_option = {"application": "0",
                        "timeout": str(timeout),
                        "priority": "0",
