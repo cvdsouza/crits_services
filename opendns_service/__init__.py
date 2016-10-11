@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from crits.services.core import Service, ServiceConfigError
 
 from . import forms
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,17 @@ class OpenDNSService(Service):
         return {'http': proxy, 'https': proxy}
 
     def run(self, obj, config):
+
+        '''
+
+        Adding Proxy Configurations
+        '''
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
         token = config.get('Investigate_API_Token', '')
         uri = config.get('Investigate_URI', '')
         headers = {'Authorization': 'Bearer ' + token}
@@ -106,7 +118,7 @@ class OpenDNSService(Service):
 
         try:
             for r in reqs.keys():
-                resp = requests.get(uri + reqs[r], headers=headers, proxies=self.proxies)
+                resp = requests.get(uri + reqs[r], headers=headers, proxies=proxies)
 
                 if resp.status_code == 204:
                     logger.error("No content status returned from request: %s" % (r))
