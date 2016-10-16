@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 class PunchService(Service):
     name = "punch_plus_plus_service"
     version = '1.0.1'
-    supported_types = ['IP','Indicator']
+    supported_types = ['IP','Indicator','Email']
     description = "Analyze IP reputation or malicious URL pcre"
 
     @staticmethod
     def parse_config(config):
         # Must have both Punch API key and Punch URL .
-        if (config['url'] and not config['apiKey']) :
-            raise ServiceConfigError("Must specify both Punch++ URL and API Key.")
+        if (config['url'] and not config['apiKey'] and not config['url_dump']) :
+            raise ServiceConfigError("Must specify Punch++ URL, CheckMyDump URL and API Key.")
 
     @staticmethod
     def get_config(existing_config):
@@ -135,6 +135,77 @@ class PunchService(Service):
         except IndexError:
             self._add_result('No PCRE Match')
 
+    def _get_query_type(self, obj):
+        """Abstract the query type from the call."""
+        if obj._meta['crits_type'] == 'Domain':
+            query = obj.domain
+        elif obj._meta['crits_type'] == 'IP':
+            query = obj.ip
+        elif obj._meta['crits_type'] == 'Indicator':
+            query = obj.value
+        elif obj._meta['crits_type'] == 'Email':
+            query = list()
+            for field in ['sender', 'to', 'from_address']:
+                tmp = getattr(obj, field)
+                self._info("Values: %s " % str(tmp))
+                if not tmp or tmp == '':
+                    continue
+                query.append(tmp)
+        self._info("Query value passed along: %s." % str(query))
+        return query
+
+    def check_my_dump(self,obj,config):
+        query = self._get_query_type(obj)
+        field ='email'
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
+        url = config['url_dump']
+        api = config['apiKey']
+
+        if type(query)==list:
+            for item in query:
+                checkmydump = url + 'api/email/' + item + '?apikey=' + api
+                r = requests.get(checkmydump, verify=False, proxies=proxies)
+                if r.status_code != 200:
+                    self._error("Response code not 200")
+                    return
+
+                results = r.json()
+                if 'message' in results:
+                   self._add_result("Check My Dump" , results['message'])
+                else:
+
+                    for record in results['rows']:
+                        data = {'Username' : record.get['username'],
+                                'Domain': record['domain'],
+                                'Password': record['password'],
+                                'Userbase': record['userbase'],
+                                }
+                        self._add_result("Check My Dump", record['username'], data)
+        else:
+            checkmydump = url + 'api/email/' + item + '?apikey=' + api
+            r = requests.get(checkmydump, verify=False, proxies=proxies)
+            if r.status_code != 200:
+                self._error("Response code not 200")
+                return
+
+            results = r.json()
+            if 'message' in results:
+                self._add_result("Check My Dump", results['message'])
+            else:
+
+                for record in results['rows']:
+                    data = {'Username': record.get['username'],
+                            'Domain': record['domain'],
+                            'Password': record['password'],
+                            'Userbase': record['userbase'],
+                            }
+                    self._add_result("Check My Dump", record['username'], data)
+
 
     def run(self, obj, config):
 
@@ -142,5 +213,8 @@ class PunchService(Service):
             self.iprep_check(obj, config)
         elif obj._meta['crits_type'] == 'Indicator':
             self.pcre_match(obj,config)
+        elif obj._meta['crits_type'] == 'Email':
+            self.check_my_dump(obj,config)
+
 
 

@@ -9,6 +9,11 @@ class PunchplusplusConfigForm(forms.Form):
                            initial='https://packetmail.net/',
                            widget=forms.TextInput(),
                            help_text="URL for Punch++ Service")
+    url_dump = forms.CharField(required=True,
+                           label="CheckMyDump URL",
+                           initial='https://checkmydump.miscreantpunchers.net/',
+                           widget=forms.TextInput(),
+                           help_text="URL for CheckMyDump Service")
 
     apiKey = forms.CharField(required=True,
                                label="API Key",
