@@ -176,6 +176,7 @@ class PunchService(Service):
                     return
 
                 results = r.json()
+                self._info("CMD returned : %s" %results)
                 if 'message' in results:
                    self._add_result("Check My Dump" , results['message'])
                 else:
@@ -186,7 +187,7 @@ class PunchService(Service):
                                 'Password': record['password'],
                                 'Userbase': record['userbase'],
                                 }
-                        self._add_result("Check My Dump", record['username'], data)
+                        self._add_result("Check My Dump", str(item), data)
         else:
             checkmydump = url + 'api/email/' + query + '?apikey=' + api
             r = requests.get(checkmydump, verify=False, proxies=proxies)
