@@ -169,6 +169,7 @@ class PunchService(Service):
         if type(query)==list:
             for item in query:
                 checkmydump = url + 'api/email/' + item + '?apikey=' + api
+                self._info("Email addresses : %s" %item)
                 r = requests.get(checkmydump, verify=False, proxies=proxies)
                 if r.status_code != 200:
                     self._error("Response code not 200")
@@ -187,7 +188,7 @@ class PunchService(Service):
                                 }
                         self._add_result("Check My Dump", record['username'], data)
         else:
-            checkmydump = url + 'api/email/' + item + '?apikey=' + api
+            checkmydump = url + 'api/email/' + query + '?apikey=' + api
             r = requests.get(checkmydump, verify=False, proxies=proxies)
             if r.status_code != 200:
                 self._error("Response code not 200")
