@@ -168,7 +168,7 @@ class PunchService(Service):
 
         if type(query)==list:
             for item in query:
-                checkmydump = url + 'api/email/' + item + '?apikey=' + api
+                checkmydump = url + 'api/email/' + str(item) + '?apikey=' + api
                 self._info("Email addresses : %s" %item)
                 r = requests.get(checkmydump, verify=False, proxies=proxies)
                 if r.status_code != 200:
