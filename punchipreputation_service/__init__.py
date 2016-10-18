@@ -171,14 +171,14 @@ class PunchService(Service):
                 if type(item) == list:
                     for email in item:
 
-                        checkmydump = url + 'api/email/' + str(item) + '?apikey=' + api
+                        checkmydump = url + 'api/email/' + email + '?apikey=' + api
                         self._info("Email addresses in list of list : %s" %item)
                         r = requests.get(checkmydump, verify=False, proxies=proxies)
                         if r.status_code != 200:
                             self._error("Response code not 200")
                             return
                         results = r.json()
-                        self._info("CMD returned insite list of list : %s" % results)
+                        self._info("CMD returned inside list of list : %s" % results)
                         if 'message' in results:
                             self._add_result("Check My Dump", results['message'])
                         else:
@@ -204,7 +204,7 @@ class PunchService(Service):
                        self._add_result("Check My Dump" , results['message'])
                     else:
 
-                        for record in results['rows']:
+                        for record in results['rows'][0]:
                             data = {'Username' : record.get['username'],
                                     'Domain': record['domain'],
                                     'Password': record['password'],
