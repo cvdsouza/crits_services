@@ -168,26 +168,49 @@ class PunchService(Service):
 
         if type(query)==list:
             for item in query:
-                checkmydump = url + 'api/email/' + str(item) + '?apikey=' + api
-                self._info("Email addresses : %s" %item)
-                r = requests.get(checkmydump, verify=False, proxies=proxies)
-                if r.status_code != 200:
-                    self._error("Response code not 200")
-                    return
+                if type(item) == list:
+                    for email in item:
 
-                results = r.json()
-                self._info("CMD returned : %s" %results)
-                if 'message' in results:
-                   self._add_result("Check My Dump" , results['message'])
+                        checkmydump = url + 'api/email/' + str(item) + '?apikey=' + api
+                        self._info("Email addresses : %s" %item)
+                        r = requests.get(checkmydump, verify=False, proxies=proxies)
+                        if r.status_code != 200:
+                            self._error("Response code not 200")
+                            return
+                        results = r.json()
+                        self._info("CMD returned : %s" % results)
+                        if 'message' in results:
+                            self._add_result("Check My Dump", results['message'])
+                        else:
+
+                            for record in results['rows']:
+                                data = {'Username': record.get['username'],
+                                        'Domain': record['domain'],
+                                        'Password': record['password'],
+                                        'Userbase': record['userbase'],
+                                        }
+                                self._add_result("Check My Dump", str(item), data)
                 else:
+                    checkmydump = url + 'api/email/' + str(item) + '?apikey=' + api
+                    self._info("Email addresses : %s" % item)
+                    r = requests.get(checkmydump, verify=False, proxies=proxies)
+                    if r.status_code != 200:
+                        self._error("Response code not 200")
+                        return
 
-                    for record in results['rows']:
-                        data = {'Username' : record.get['username'],
-                                'Domain': record['domain'],
-                                'Password': record['password'],
-                                'Userbase': record['userbase'],
-                                }
-                        self._add_result("Check My Dump", str(item), data)
+                    results = r.json()
+                    self._info("CMD returned : %s" %results)
+                    if 'message' in results:
+                       self._add_result("Check My Dump" , results['message'])
+                    else:
+
+                        for record in results['rows']:
+                            data = {'Username' : record.get['username'],
+                                    'Domain': record['domain'],
+                                    'Password': record['password'],
+                                    'Userbase': record['userbase'],
+                                    }
+                            self._add_result("Check My Dump", str(item), data)
         else:
             checkmydump = url + 'api/email/' + query + '?apikey=' + api
             r = requests.get(checkmydump, verify=False, proxies=proxies)
