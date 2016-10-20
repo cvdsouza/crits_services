@@ -393,6 +393,7 @@ class AlienVaultOTXService(Service):
                 return
 
             results_lst = r_lst.json()
+            self._info("Printing the json acquire %s" % results_lst)
             results = r.json()
 
             self._add_result("General Information- Indicator", results.get('indicator'))
