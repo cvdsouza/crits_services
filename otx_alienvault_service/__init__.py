@@ -36,7 +36,7 @@ class AlienVaultOTXService(Service):
 
     name = "otx_alienvault_lookup"
     version = '1.0.0'
-    supported_types = ['Domain', 'IP', 'Indicator', 'Sample']
+    supported_types = ['Domain', 'IP', 'Sample']
     required_fields = []
     template = 'avotx_service_template.html'
     description = "Look up a Sample, Domain or IP in AlienVault OTX"
@@ -550,8 +550,8 @@ class AlienVaultOTXService(Service):
             self.check_indicators_ip(obj, config)
         elif obj._meta['crits_type'] == 'Domain':
             self.check_indicators_hostname(obj,config)
-        elif obj._meta['crits_type'] == 'Indicator':
-            self.check_indicators_url(obj,config)
+       # elif obj._meta['crits_type'] == 'Indicator':
+            #self.check_indicators_url(obj,config)
         elif obj._meta['crits_type'] == 'Sample':
             self.check_indicators_filehash(obj,config)
 
