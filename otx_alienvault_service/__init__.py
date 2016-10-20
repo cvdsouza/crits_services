@@ -392,7 +392,7 @@ class AlienVaultOTXService(Service):
                 self._error("Response not OK")
                 return
 
-            self._info("Printing the json acquire %s" % r_lst)
+            self._info("Printing the json acquire %s" % r_lst.raw)
             results_lst = r_lst.json()
 
             results = r.json()
