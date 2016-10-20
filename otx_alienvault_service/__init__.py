@@ -388,7 +388,7 @@ class AlienVaultOTXService(Service):
             r = requests.get(request_url, headers=headers, verify=False, proxies=proxies)
             r_lst = requests.get(request_url_lst, headers=headers, verify=False, proxies=proxies)
 
-            if r_lst.status_code != 200:
+            if r_lst.status_code != 200 and r.status_code != 200:
                 self._error("Response not OK")
                 return
 
