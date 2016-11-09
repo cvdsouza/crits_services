@@ -1,5 +1,5 @@
-# Copyright (c) 2015, The MITRE Corporation. All rights reserved.
-# Copyright (c) 2015, Adam Polkosnik, Team Cymru.  All rights reserved.
+# Copyright (c) 2016, The MITRE Corporation. All rights reserved.
+# Copyright (c) 2016, Adam Polkosnik, Team Cymru.  All rights reserved.
 
 # Source code distributed pursuant to license agreement.
 # PEhash computing code is from Team Cymru.
@@ -73,6 +73,8 @@ class PEInfoService(Service):
         #image characteristics
         img_chars = bitstring.BitArray(hex(exe.FILE_HEADER.Characteristics))
         #pad to 16 bits
+        if len(img_chars) == 8:
+            img_chars = bitstring.BitArray('0b00000000') + img_chars
         img_chars = bitstring.BitArray(bytes=img_chars.tobytes())
         img_chars_xor = img_chars[0:7] ^ img_chars[8:15]
 
@@ -150,6 +152,7 @@ class PEInfoService(Service):
 
     def run(self, obj, config):
         try:
+            self._debug("Version: %s" % pefile.__version__ )
             pe = pefile.PE(data=obj.filedata.read())
         except pefile.PEFormatError as e:
             self._error("A PEFormatError occurred: %s" % e)

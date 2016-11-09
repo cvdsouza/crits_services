@@ -7,6 +7,7 @@ from crits.core.user_tools import user_sources, get_user_organization
 from crits.core.handlers import get_source_names, collect_objects
 from crits.core.class_mapper import class_from_type
 from crits.services.handlers import get_config
+from crits.vocabulary.indicators import IndicatorCI
 
 from datetime import datetime
 from dateutil.tz import tzutc
@@ -156,10 +157,10 @@ class TAXIIServiceConfigForm(forms.Form):
                   widget=forms.TextInput(),
                   help_text="The XML namespace prefix to use in STIX IDs.")
 
-    create_events = forms.BooleanField(required=False,
-                  label="Events",
+    header_events = forms.BooleanField(required=False,
+                  label="Pkg Header Events",
                   initial=False,
-                  help_text="Create events for all STIX documents.")
+                  help_text="Create an Event from each STIX package header & relate all items to it.")
 
     max_rels = forms.IntegerField(required=True,
                                   label="Maximum Related",
@@ -175,7 +176,7 @@ class TAXIIServiceConfigForm(forms.Form):
                      'style':"height:100px; background-image: none"}
     taxii_servers = forms.ChoiceField(required=False,
                   label="TAXII Servers",
-                  initial='',
+                  initial={},
                   widget=forms.Select(attrs=tserver_attrs))
 
     def __init__(self, choices=[], *args, **kwargs):
@@ -203,7 +204,8 @@ class TAXIIServerConfigForm(forms.Form):
                                label="Hostname",
                                initial='',
                                widget=forms.TextInput(),
-                               help_text="TAXII server hostname.")
+                               help_text="TAXII server hostname. (Omit URI "
+                                         "scheme, e.g. 'http://')")
 
     https = forms.BooleanField(required=False,
                                label="HTTPS",
@@ -294,12 +296,10 @@ class TAXIIFeedConfigForm(forms.Form):
                           initial='',
                           widget=forms.HiddenInput())
 
-    source = forms.CharField(required=False,
-                             label="CRITs Source",
-                             initial='',
-                             widget=forms.TextInput(),
-                             help_text="The CRITs Source name to associate"
-                                       " with this feed.")
+    source = forms.ChoiceField(required=True,
+                               label="CRITs Source",
+                               help_text="The CRITs Source name to associate"
+                                         " with this feed.")
 
     fcert = forms.CharField(required=False,
                             label="Encryption Certificate",
@@ -328,9 +328,29 @@ class TAXIIFeedConfigForm(forms.Form):
                             help_text="The end timestamp of the last full "
                             "poll. Future polls begin with this date/time.")
 
-    def __init__(self, *args, **kwargs):
+    def_conf = forms.ChoiceField(required=True,
+                                 label="Default Confidence",
+                                 help_text="Indicators with no Confidence "
+                                           "are assigned this value.")
+
+    def_impact = forms.ChoiceField(required=True,
+                                   label="Default Impact",
+                                   help_text="Indicators with no Impact "
+                                             "are assigned this value.")
+
+    def __init__(self, username, *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
         super(TAXIIFeedConfigForm, self).__init__(*args, **kwargs)
+
+        srcs = get_source_names(True, True, username)
+        self.fields['source'].choices = [(c.name, c.name) for c in srcs]
+        self.fields['source'].initial = get_user_organization(username)
+
+        ind_ci = IndicatorCI.values()
+        self.fields['def_conf'].choices = [(c, c.title()) for c in ind_ci]
+        self.fields['def_conf'].initial = 'unknown'
+        self.fields['def_impact'].choices = [(c, c.title()) for c in ind_ci]
+        self.fields['def_impact'].initial = 'unknown'
 
 
 class UploadStandardsForm(forms.Form):
@@ -348,8 +368,7 @@ class UploadStandardsForm(forms.Form):
     def __init__(self, username, *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
         super(UploadStandardsForm, self).__init__(*args, **kwargs)
-        self.fields['source'].choices = [(c.name,
-                                          c.name) for c in get_source_names(True,
-                                                                            True,
-                                                                            username)]
+
+        srcs = get_source_names(True, True, username)
+        self.fields['source'].choices = [(c.name, c.name) for c in srcs]
         self.fields['source'].initial = get_user_organization(username)

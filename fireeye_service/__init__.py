@@ -18,7 +18,7 @@ class FireeyeService(Service):
     """
 
     name = 'Fireeye_Sandbox'
-    version = '1.0.0'
+    version = '1.1.0'
     supported_types = ['Sample']
     description = "Analyze a sample using the FireyeMAS appliance through the Fireeye CMS."
 
@@ -82,12 +82,15 @@ class FireeyeService(Service):
 
     @staticmethod
     def bind_runtime_form(analyst, config):
+        if 'force' not in config:
+            config['force'] = False
         machines = FireeyeService._tuplize_machines(config['machine'])
 
         # The integer values are submitted as a list for some reason.
         # Package and machine are submitted as a list too.
         data = { 'timeout': config['timeout'][0],
-                'machine': config['machine'][0] }
+                'machine': config['machine'][0],
+                'force' : config['force']}
         return forms.FireeyeRunForm(machines=machines, data=data)
 
     @staticmethod
@@ -115,7 +118,7 @@ class FireeyeService(Service):
 
     @property
     def base_url(self):
-        return 'https://%s/wsapis/v1.0.0' % (self.config.get('host'))
+        return 'https://%s/wsapis/v1.1.0' % (self.config.get('host'))
 
     @property
     def username(self):
@@ -142,7 +145,7 @@ class FireeyeService(Service):
         b64credentials = base64.b64encode(credentials)
         headers = {'Authorization': 'Basic ' + b64credentials}
         r = requests.post(self.base_url + '/auth/login', headers=headers, verify=False, proxies=self.proxies)
-        token = r.headers['x-feapi-token']
+        token = r.headers['X-FeApi-Token']
         return token
 
     #Function to parse out the xml node (file, network, etc) within the os-changes node. 
@@ -173,14 +176,27 @@ class FireeyeService(Service):
     #Submitting sample via a zip file. The MAS options are defined in json_option. 
     def submit_sample(self, obj):
         timeout = self.config.get('timeout')
-        zipdata = create_zip([(obj.filename, obj.filedata.read())]) 
         machine = self.config.get('machine', "")
         sc = self.authentication
-        headers = {'X-FEApi-Token': sc}
-        json_option = {'application':'0', 'timeout':timeout, 'priority':'0', 'profiles':[machine], 'analysistype':'0', 'force':'true', 'prefetch':'0'}
+        headers = {'X-feApi-Token': sc, 'X-FeClient-Token':'critsy test'}
+        json_option = {"application":"0",
+                       "timeout": str(timeout),
+                       "priority":"0",
+                       "profiles":[machine],
+                       "analysistype":"2",
+                       "force":self.config.get('force'),
+                       "prefetch":"1"}
         jsondata = json.dumps(json_option)
-        files = [('filename',('crits.zip', zipdata, '')),('options', ('', jsondata,'application/json'))]
-        r = requests.post(self.base_url + '/submissions', headers=headers, files=files, verify=False, proxies=self.proxies)
+
+
+        submission = {'filedata' : (obj.filename,obj.filedata)}
+        self._info("About to post to FE MAS")
+        r = requests.post(self.base_url + '/submissions',
+                          headers=headers,
+                          files=submission,
+                          data ={'options':jsondata},
+                          verify=False,
+                          proxies=self.proxies)
         
         if r.status_code != requests.codes.ok:
             msg = "Failed to submit file to machine '%s'." % machine
@@ -200,9 +216,13 @@ class FireeyeService(Service):
         first = True
         while counter <= 5:
             r = requests.get(self.base_url + '/submissions/status/' + self.task, headers=headers, verify=False, proxies=self.proxies)
+            try:
+                res = r.json()['submissionStatus']
+            except TypeError as err:
+                res = r.text
             if first is True:
-                time.sleep(self.timeout+20)
-            if r.text == "Done":
+                time.sleep(self.timeout+10)
+            if res == "Done":
                 complete = requests.get(self.base_url + '/submissions/results/' + self.task, headers=headers, verify=False, proxies=self.proxies, stream=True)
                 analysis_xml = etree.parse(complete.raw)
                 root = analysis_xml.getroot()
@@ -210,12 +230,16 @@ class FireeyeService(Service):
                 fe_id = analysis_id.attrib['id']
                 self._info ("Analysis has been completed. FE_ID = %s" % fe_id)
                 self.fe_id = fe_id
-                break;
-            elif r.text == "In Progress":
+                break
+            elif res == "In Progress":
                 self._info("Analysis is still running for %s" % self.task)
                 time.sleep(30)
-                counter+1
+                counter += 1
+            elif res == "Submission not found":
+                self._info("Submission not found for task %s" % self.task)
+                break
             first = False
+            
 
     #Retrieve the xml report and parsing out parts of the xml report. 
     def get_report(self):
@@ -264,7 +288,7 @@ class FireeyeService(Service):
                             data ['URL'] = url[0]
                         else:
                             data ['URL'] = ""
-                self._add_result('CNC-Services', domain, data) 
+                self._add_result('CNC-Services', domain, data)
 
         #Parsing the os-changes looking for "malicious-alert". If malicious alert exist then it will attempt to parse out certain nodes. 
         for node in os_changes_nodes:
@@ -368,6 +392,10 @@ class FireeyeService(Service):
         self.obj = obj
 
         self.submit_sample(self.obj)
+        self._info("Submission Completed")
         self.get_analysis()
+        self._info("Analysis Completed")
         self.get_report()
+        self._info("Report Generated")
         self.logout()
+        self._info("Logged out now...")
