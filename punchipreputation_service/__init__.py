@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class PunchService(Service):
     name = "punch_plus_plus_service"
     version = '1.0.1'
-    supported_types = ['IP','Indicator','Email']
+    supported_types = ['IP','Indicator']
     description = "Analyze IP reputation or malicious URL pcre"
 
     @staticmethod
@@ -238,8 +238,8 @@ class PunchService(Service):
             self.iprep_check(obj, config)
         elif obj._meta['crits_type'] == 'Indicator':
             self.pcre_match(obj,config)
-        elif obj._meta['crits_type'] == 'Email':
-            self.check_my_dump(obj,config)
+        #elif obj._meta['crits_type'] == 'Email':
+            #self.check_my_dump(obj,config)
 
 
 
