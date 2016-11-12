@@ -52,8 +52,8 @@ class IntelService(Service):
 
     @staticmethod
     def get_config(existing_config):
-        config={}
-        fields= forms.IntelConfigForm.fields
+        config = {}
+        fields = forms.IntelConfigForm().fields
         for name, field in fields.iteritems():
             config[name] = field.initial
 
