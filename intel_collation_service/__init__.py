@@ -93,11 +93,13 @@ class IntelService(Service):
         filehash_md5 = obj.md5
         filehash_sha256 = obj.sha256
         filehash_sha1 = obj.sha1
+        filehash_impfuzzy = obj.impfuzzy
 
 
         self._add_result("Sample Information : MD5", filehash_md5)
         self._add_result("Sample Information : SHA1", filehash_sha1)
         self._add_result("Sample Information : SHA256", filehash_sha256)
+        self._add_result("Sample Information : ImpFuzze", filehash_impfuzzy)
 
 
 
