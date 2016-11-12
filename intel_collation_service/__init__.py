@@ -102,5 +102,5 @@ class IntelService(Service):
 
 
     def run(self, obj, config):
-        if obj.meta['crits_type'] == 'Sample':
+        if obj._meta['crits_type'] == 'Sample':
             self.collate_intel(obj, config)
