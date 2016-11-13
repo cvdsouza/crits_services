@@ -135,6 +135,7 @@ class AlienVaultOTXService(Service):
                 '''
                 Related malware hashes.
                 '''
+                self._info('Returned JSON %s' % results)
                 if 'result' in results:
                     self._add_result("Related Malicious Hash", 'Not Found')
                 else:
