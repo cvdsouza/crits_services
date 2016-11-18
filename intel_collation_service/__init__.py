@@ -96,8 +96,9 @@ class IntelService(Service):
         """
         Set service runtime information
         """
+        data = {'ticketNumber' : config['ticketNumber'][0]}
 
-        return forms.IntelRunForm(config)
+        return forms.IntelRunForm(data=data)
 
 
 
