@@ -102,8 +102,8 @@ class IntelService(Service):
         self._add_result("Sample Information : ImpFuzzy", filehash_impfuzzy)
 
         self._info("Entering Relationships ....")
-        for r in obj.relationships:
-            self._info("Print relationships %s" % r)
+        for rel in obj.relationships:
+            self._info("Print relationships : %s " % rel.rel_type)
 
 
 
