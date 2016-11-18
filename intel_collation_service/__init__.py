@@ -48,7 +48,7 @@ class IntelService(Service):
     def parse_config(config):
 
         if (config['url'] and not config['apiKey']):
-            raise ServiceConfigError("Specify a URL and API to transfer information (ignore for now")
+            raise ServiceConfigError("Specify a URL and API Key to transfer information (ignore for now")
 
     @staticmethod
     def get_config(existing_config):
@@ -82,6 +82,27 @@ class IntelService(Service):
         form = forms.IntelConfigForm
         return form, html
 
+    @classmethod
+    def generate_runtime_form(self, analyst, config, crits_type, identifier):
+
+        return render_to_string('services_run_form.html',
+                                {'name': self.name,
+                                 'form': forms.IntelRunForm(),
+                                 'crits_type': crits_type,
+                                 'identifier': identifier})
+
+    @staticmethod
+    def bind_runtime_form(analyst, config):
+        """
+        Set service runtime information
+        """
+        if 'ticketNumber' not in config:
+            config['ticketNumber'] = True
+
+        return forms.IntelRunForm(config)
+
+
+
     def collate_intel(self, obj, config):
         if settings.HTTP_PROXY:
             proxies = {'http': settings.HTTP_PROXY,
@@ -94,18 +115,20 @@ class IntelService(Service):
         filehash_sha256 = obj.sha256
         filehash_sha1 = obj.sha1
         filehash_impfuzzy = obj.impfuzzy
+        ticket_number = config['ticketNumber']
 
 
         self._add_result("Sample Information : MD5", filehash_md5)
         self._add_result("Sample Information : SHA1", filehash_sha1)
         self._add_result("Sample Information : SHA256", filehash_sha256)
         self._add_result("Sample Information : ImpFuzzy", filehash_impfuzzy)
+        self._info("Ticket number %s" % ticket_number)
 
         self._info("Entering Relationships ....")
         for rel in obj.relationships:
             if rel.rel_type == 'Indicator':
                 indicator = Indicator.objects(id=rel.object_id).first()
-                self._info("Print relationship type : %s " % indicator.value)
+                self._info("Print relationship value : %s " % indicator.value)
                 self._info("Print relationship type : %s " % indicator.ind_type)
 
 
