@@ -26,7 +26,7 @@ class IntelRunForm(forms.Form):
 
     ticketNumber = forms.IntegerField(required=True,
                                    label="Ticket Number",
-                                   initial='0',
+                                   initial='',
                                    #widget=forms.TextInput(),
                                    help_text="Ticket Number")
 
