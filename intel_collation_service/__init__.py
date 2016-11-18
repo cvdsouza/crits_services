@@ -100,6 +100,8 @@ class IntelService(Service):
         self._add_result("Sample Information : SHA1", filehash_sha1)
         self._add_result("Sample Information : SHA256", filehash_sha256)
         self._add_result("Sample Information : ImpFuzzy", filehash_impfuzzy)
+        for r in obj.relationships:
+            self._info("Print relationships %s" % r)
 
 
 
