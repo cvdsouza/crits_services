@@ -116,7 +116,7 @@ class IntelService(Service):
         filehash_sha1 = obj.sha1
         filehash_impfuzzy = obj.impfuzzy
         ticket_number = config['ticketNumber']
-        if ticket_number is '':
+        if ticket_number is None:
             self._info("Empty, enter a ticket number")
         else:
             self._info("Ticket number %s" % ticket_number)
