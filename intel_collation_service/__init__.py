@@ -97,7 +97,7 @@ class IntelService(Service):
         Set service runtime information
         """
         if 'ticketNumber' not in config:
-            config['ticketNumber'] = False
+            config['ticketNumber'] = True
 
         return forms.IntelRunForm(config)
 
@@ -116,13 +116,17 @@ class IntelService(Service):
         filehash_sha1 = obj.sha1
         filehash_impfuzzy = obj.impfuzzy
         ticket_number = config['ticketNumber']
+        if ticket_number is '':
+            self._info("Empty, enter a ticket number")
+        else:
+            self._info("Ticket number %s" % ticket_number)
 
 
         self._add_result("Sample Information : MD5", filehash_md5)
         self._add_result("Sample Information : SHA1", filehash_sha1)
         self._add_result("Sample Information : SHA256", filehash_sha256)
         self._add_result("Sample Information : ImpFuzzy", filehash_impfuzzy)
-        self._info("Ticket number %s" % ticket_number)
+
 
         self._info("Entering Relationships ....")
         for rel in obj.relationships:
