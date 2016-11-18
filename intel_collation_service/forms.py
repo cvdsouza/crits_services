@@ -31,4 +31,4 @@ class IntelRunForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
-        super(ThreatGRIDRunForm, self).__init__(*args, **kwargs)
+        super(IntelRunForm, self).__init__(*args, **kwargs)
