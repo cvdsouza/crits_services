@@ -26,7 +26,6 @@ class IntelRunForm(forms.Form):
     ticketNumber = forms.IntegerField(required=True,
                                    label="Ticket Number",
                                    initial='',
-                                   widget=forms.TextInput(),
                                    help_text="Ticket Number")
 
     def __init__(self, *args, **kwargs):
