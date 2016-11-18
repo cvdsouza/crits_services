@@ -97,7 +97,7 @@ class IntelService(Service):
         Set service runtime information
         """
         if 'ticketNumber' not in config:
-            config['ticketNumber'] = True
+            config['ticketNumber'] = False
 
         return forms.IntelRunForm(config)
 
