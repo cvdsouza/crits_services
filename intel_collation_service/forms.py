@@ -23,9 +23,11 @@ class IntelConfigForm(forms.Form):
 class IntelRunForm(forms.Form):
     error_css_class = 'error'
     required_css_class = 'required'
-    ticketNumber = forms.IntegerField(required=True,
+
+    ticketNumber = forms.CharField(required=True,
                                    label="Ticket Number",
-                                   initial='',
+                                   initial='0',
+                                   widget=forms.TextInput(),
                                    help_text="Ticket Number")
 
     def __init__(self, *args, **kwargs):
