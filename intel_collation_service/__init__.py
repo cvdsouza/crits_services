@@ -96,11 +96,6 @@ class IntelService(Service):
         """
         Set service runtime information
         """
-        errors = []
-        if 'ticketNumber' not in config:
-            errors.append("Ticket Number required")
-        if errors:
-            raise RuntimeError(errors)
 
         return forms.IntelRunForm(config)
 
