@@ -105,7 +105,8 @@ class IntelService(Service):
         for rel in obj.relationships:
             if rel.rel_type == 'Indicator':
                 indicator = Indicator.objects(id=rel.object_id).first()
-                self._info("Print relationships : %s " % indicator.value)
+                self._info("Print relationship type : %s " % indicator.value)
+                self._info("Print relationship type : %s " % indicator.ind_type)
 
 
 
