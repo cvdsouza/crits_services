@@ -103,7 +103,9 @@ class IntelService(Service):
 
         self._info("Entering Relationships ....")
         for rel in obj.relationships:
-            self._info("Print relationships : %s " % rel.rel_type)
+            if rel.rel_type == 'Indicator':
+                indicator_1 = Indicator.objects(id=rel.object_id).first()
+                self._info("Print relationships : %s " % indicator_1.name)
 
 
 
