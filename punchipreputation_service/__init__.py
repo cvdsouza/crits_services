@@ -113,11 +113,12 @@ class PunchService(Service):
         url = config['url']
         api = config['apiKey']
 
-        self._info("IP Address : " + str(obj.value))
+        self._info("Indicator Value : " + str(obj.value))
+        self._info("Indicator IP address : " + str(obj.ip))
 
-        iprep_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
+        pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
 
-        r = requests.get(iprep_url_check, verify=False, proxies=proxies)
+        r = requests.get(pcre_url_check, verify=False, proxies=proxies)
         if r.status_code != 200:
             self._error("Response code not 200")
             return
@@ -134,6 +135,8 @@ class PunchService(Service):
                         self._add_result('PCRE Match', subval['pcre'])
         except IndexError:
             self._add_result('No PCRE Match')
+
+
 
     def _get_query_type(self, obj):
         """Abstract the query type from the call."""
