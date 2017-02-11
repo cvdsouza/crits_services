@@ -4,6 +4,7 @@ import json
 import time
 import re
 import logging
+import socket
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -59,7 +60,7 @@ class PunchService(Service):
         form = forms.PunchplusplusConfigForm
         return form, html
 
-    def iprep_check(self,obj,config):
+    def iprep_check(self,ip,config):
 
         if settings.HTTP_PROXY:
             proxies = {'http': settings.HTTP_PROXY,
@@ -70,10 +71,10 @@ class PunchService(Service):
         url = config['url']
         api = config['apiKey']
 
-        self._info("IP Address : "+ str(obj.ip))
+        self._info("IP Address : "+ str(ip))
 
 
-        iprep_url_check = url+'iprep.php/'+str(obj.ip)+'?apikey='+api
+        iprep_url_check = url+'iprep.php/'+str(ip)+'?apikey='+api
 
         r = requests.get(iprep_url_check,verify=False, proxies= proxies)
 
@@ -83,7 +84,7 @@ class PunchService(Service):
         data = {}
         results = r.json()
         self._add_result("Origin", results['origin'],)
-        self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(obj.ip)+"?apikey="+api)
+        self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(ip)+"?apikey="+api)
         for mkey, subdict in results.iteritems():
             if 'context' in subdict:
                 data ={
@@ -114,9 +115,14 @@ class PunchService(Service):
         api = config['apiKey']
 
         self._info("Indicator Value : " + str(obj.value))
-        self._info("Indicator IP address : " + str(obj.ip))
 
-        pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
+        '''
+        Check if Indicator is IPv4
+        '''
+        if socket.inet_aton(str(obj.value)):
+            self._info("IPv4 Address : "+str(obj.value))
+        else:
+            pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
 
         r = requests.get(pcre_url_check, verify=False, proxies=proxies)
         if r.status_code != 200:
@@ -238,7 +244,7 @@ class PunchService(Service):
     def run(self, obj, config):
 
         if obj._meta['crits_type'] == 'IP':
-            self.iprep_check(obj, config)
+            self.iprep_check(obj.ip, config)
         elif obj._meta['crits_type'] == 'Indicator':
             self.pcre_match(obj,config)
         #elif obj._meta['crits_type'] == 'Email':
