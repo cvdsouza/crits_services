@@ -123,26 +123,25 @@ class PunchService(Service):
             self._info("IPv4 Address : "+str(obj.value))
             self.iprep_check(obj.value, config)
         else:
-            pcre_url_check=''
+
             pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
+            r = requests.get(pcre_url_check, verify=False, proxies=proxies)
+            if r.status_code != 200:
+                self._error("Response code not 200")
+                return
 
-        r = requests.get(pcre_url_check, verify=False, proxies=proxies)
-        if r.status_code != 200:
-            self._error("Response code not 200")
-            return
-
-        results = r.json()
-        pcrematch = []
-        try:
-            bodyFlag = True if 'pcre' in results else False
-            if type(results) is ListType:
-                for subval in results:
-                    if 'pcre' in subval:
-                        self._info(subval['pcre'])
-                        pcrematch = subval['pcre']
-                        self._add_result('PCRE Match', subval['pcre'])
-        except IndexError:
-            self._add_result('No PCRE Match')
+            results = r.json()
+            pcrematch = []
+            try:
+                bodyFlag = True if 'pcre' in results else False
+                if type(results) is ListType:
+                    for subval in results:
+                        if 'pcre' in subval:
+                            self._info(subval['pcre'])
+                            pcrematch = subval['pcre']
+                            self._add_result('PCRE Match', subval['pcre'])
+            except IndexError:
+                self._add_result('No PCRE Match')
 
 
 
