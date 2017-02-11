@@ -121,7 +121,9 @@ class PunchService(Service):
         '''
         if socket.inet_aton(str(obj.value)):
             self._info("IPv4 Address : "+str(obj.value))
+            self.iprep_check(obj.value, config)
         else:
+            pcre_url_check=''
             pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
 
         r = requests.get(pcre_url_check, verify=False, proxies=proxies)
