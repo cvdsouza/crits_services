@@ -95,11 +95,11 @@ class PunchService(Service):
                         "Source": subdict['source'],
                         #"Context": subdict['context'],
                         "Last Seen": subdict['last_seen'],
-                        "feed": contextParse[0]['feed'],
-                        "last_seen": contextParse[0]['last_seen_at'],
-                        "ip": contextParse[0]['ip'],
-                        "first_seen_at": contextParse[0]['first_seen_at'],
-                        "categories": contextParse[0]['categories']
+                        "Feeds": contextParse[0]['feed'],
+                        #"last_seen": contextParse[0]['last_seen_at'],
+                        "IP Address": contextParse[0]['ip'],
+                        "First Seen": contextParse[0]['first_seen_at'],
+                        "Catogories": contextParse[0]['categories']
                     }
                     self._add_result("IP Reputation", mkey, data)
                 else:
