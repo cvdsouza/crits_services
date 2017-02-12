@@ -11,7 +11,7 @@ class OpenDNSConfigForm(forms.Form):
     Investigate_URI = forms.CharField(required=True,
                                       label="Query URL",
                                       widget=forms.TextInput(),
-                                      initial='https://investigate.api.opendns.com/')
+                                      initial='https://investigate.api.umbrella.com/')
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')

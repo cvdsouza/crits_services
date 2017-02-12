@@ -93,7 +93,8 @@ class OpenDNSService(Service):
         headers = {'Authorization': 'Bearer ' + token}
         reqs = {}
         resps = {}
-        scores = {u'-1': 'Bad', u'0': 'Unknown', u'1': 'Good'}
+        #scores = {u'-1': 'Bad', u'0': 'Unknown', u'1': 'Good'}
+        scores = {-1: 'Bad', 0: 'Unknown', 1: 'Good'}
 
         if not token:
             self._error("A valid API token is required to use this service.")
@@ -107,6 +108,8 @@ class OpenDNSService(Service):
             reqs["security"] = "/security/name/" + thing + ".json"
             reqs["latest_tags"] = "/domains/" + thing + "/latest_tags"
             reqs["dnsdb"] = "/dnsdb/name/a/" + thing + ".json"
+            reqs["dnsdb-ip-a"] = "/dnsdb/ip/a/" + thing + ".json"
+            reqs["dnsdb-ip-ns"] = "/dnsdb/ip/ns/" + thing + ".json"
         elif obj._meta['crits_type'] == 'IP':
             thing = obj.ip
             reqs["dnsdb"] = "/dnsdb/ip/a/" + thing + ".json"
@@ -139,8 +142,7 @@ class OpenDNSService(Service):
         for r in resps.keys():
             if r == 'categorization':
                 self._add_result(r, thing, resps[r][thing])
-            elif r == 'score':
-                self._add_result(r, thing, {'Score': scores[resps[r][thing]]})
+                self._add_result('Score', thing, {'Score': scores[resps[r][thing]['status']]})
             elif r == 'dnsdb':
                 self._add_result(r, thing, resps[r]['features'])
             elif r == 'security':
@@ -155,6 +157,10 @@ class OpenDNSService(Service):
             elif r == 'latest_domains':
                 for domain in resps[r]:
                     self._add_result(r, domain['name'], domain)
+            elif r == 'dnsdb-ip-a':
+                print (r, thing, resps[r])
+            elif r == 'dnsdb-ip-ns':
+                print (r, thing, resps[r])
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
