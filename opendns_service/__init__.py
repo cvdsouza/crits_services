@@ -102,14 +102,12 @@ class OpenDNSService(Service):
         if obj._meta['crits_type'] == 'Domain':
             thing = obj.domain
             reqs["categorization"] = "/domains/categorization/" + thing + "?showLabels"
-            reqs["score"] = "/domains/score/" + thing
+            #reqs["score"] = "/domains/score/" + thing
             reqs["recommendations"] = "/recommendations/name/" + thing + ".json"
             reqs["links"] = "/links/name/" + thing + ".json"
             reqs["security"] = "/security/name/" + thing + ".json"
             reqs["latest_tags"] = "/domains/" + thing + "/latest_tags"
             reqs["dnsdb"] = "/dnsdb/name/a/" + thing + ".json"
-            reqs["dnsdb-ip-a"] = "/dnsdb/ip/a/" + thing + ".json"
-            reqs["dnsdb-ip-ns"] = "/dnsdb/ip/ns/" + thing + ".json"
         elif obj._meta['crits_type'] == 'IP':
             thing = obj.ip
             reqs["dnsdb"] = "/dnsdb/ip/a/" + thing + ".json"
@@ -157,10 +155,6 @@ class OpenDNSService(Service):
             elif r == 'latest_domains':
                 for domain in resps[r]:
                     self._add_result(r, domain['name'], domain)
-            elif r == 'dnsdb-ip-a':
-                print (r, thing, resps[r])
-            elif r == 'dnsdb-ip-ns':
-                print (r, thing, resps[r])
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
