@@ -86,13 +86,29 @@ class PunchService(Service):
         self._add_result("Origin", results['origin'],)
         self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(ip)+"?apikey="+api)
         for mkey, subdict in results.iteritems():
-            if 'context' in subdict:
-                data ={
-                    "Source": subdict['source'],
-                    "Context": subdict['context'],
-                    "Last Seen" : subdict['last_seen']
-                }
-                self._add_result("IP Context", mkey, data)
+            if 'context' in subdict  :
+                getContext = {"Context": subdict['context']}
+                if 'ip' in getContext['Context'][0]:
+                    contextParse = getContext['Context']
+
+                    data = {
+                        "Source": subdict['source'],
+                        "Context": subdict['context'],
+                        "Last Seen": subdict['last_seen'],
+                        "feed": contextParse[0]['feed'],
+                        "last_seen": contextParse[0]['last_seen_at'],
+                        "ip": contextParse[0]['ip'],
+                        "first_seen_at": contextParse[0]['first_seen_at'],
+                        "categories": contextParse[0]['categories']
+                    }
+                    self._add_result("IP Reputation", mkey, data)
+                else:
+                    data = {
+                        "Source": subdict['source'],
+                        "Context": subdict['context'],
+                        "Last Seen": subdict['last_seen']
+                    }
+                    self._add_result("IP Reputation", mkey, data)
 
         if 'MaxMind_Free_GeoIP' in results:
             geo={}
@@ -123,7 +139,6 @@ class PunchService(Service):
             self._info("IPv4 Address : "+str(obj.value))
             self.iprep_check(obj.value, config)
         else:
-
             pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
             r = requests.get(pcre_url_check, verify=False, proxies=proxies)
             if r.status_code != 200:
