@@ -93,7 +93,7 @@ class PunchService(Service):
 
                     data = {
                         "Source": subdict['source'],
-                        "Context": subdict['context'],
+                        #"Context": subdict['context'],
                         "Last Seen": subdict['last_seen'],
                         "feed": contextParse[0]['feed'],
                         "last_seen": contextParse[0]['last_seen_at'],
