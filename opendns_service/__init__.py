@@ -158,7 +158,8 @@ class OpenDNSService(Service):
                 for domain in resps[r]:
                     self._add_result(r, domain['name'], domain)
             elif r =='bgp_routes':
-                self._add_result(r,thing,resps[r])
+                for i in resps[r]:
+                    self._add_result(r,thing,i)
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
