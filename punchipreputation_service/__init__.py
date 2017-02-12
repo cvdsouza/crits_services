@@ -87,29 +87,13 @@ class PunchService(Service):
         self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(ip)+"?apikey="+api)
         for mkey, subdict in results.iteritems():
             if 'context' in subdict  :
-                getContext = {"Context": subdict['context']}
-                if 'ip' in getContext['Context'][0]:
-                    contextParse = getContext['Context']
 
-                    data_context = {
-                        "Feeds": contextParse[0]['feed'],
-                        #"last_seen": contextParse[0]['last_seen_at'],
-                        "IP Address": contextParse[0]['ip'],
-                        "First Seen": contextParse[0]['first_seen_at'],
-                        "Catogories": contextParse[0]['categories']}
-                    data = {
-                        "Source": subdict['source'],
-                        "Context": json.dumps(data_context).encode('utf-8'),
-                        "Last Seen": subdict['last_seen'],
-                    }
-                    self._add_result("IP Reputation", mkey, data)
-                else:
-                    data = {
-                        "Source": subdict['source'],
-                        "Context": subdict['context'],
-                        "Last Seen": subdict['last_seen']
-                    }
-                    self._add_result("IP Reputation", mkey, data)
+                data = {
+                    "Source": subdict['source'],
+                    "Context": subdict['context'],
+                    "Last Seen": subdict['last_seen']
+                }
+                self._add_result("IP Reputation", mkey, data)
 
         if 'MaxMind_Free_GeoIP' in results:
             geo={}
