@@ -113,7 +113,7 @@ class OpenDNSService(Service):
             thing = obj.ip
             reqs["dnsdb"] = "/dnsdb/ip/a/" + thing + ".json"
             reqs["latest_domains"] = "/ips/" + thing + "/latest_domains"
-            reqs['bgp_routes']="/bgp_routes/ip/"+thing+"as_for_ip.json"
+            reqs['bgp_routes']="/bgp_routes/ip/"+thing+"/as_for_ip.json"
         else:
             logger.error("Unsupported type.")
             self._error("Unsupported type.")
