@@ -95,6 +95,7 @@ class OpenDNSService(Service):
         resps = {}
         #scores = {u'-1': 'Bad', u'0': 'Unknown', u'1': 'Good'}
         scores = {-1: 'Bad', 0: 'Unknown', 1: 'Good'}
+        rir = {1 : 'AfriNIC: Africa', 2: 'APNIC: Asia, Australia, New Zealand, and neighboring countries', 3: 'ARIN: United States, Canada, several parts of the Caribbean region, and Antarctica.', 4: 'LACNIC: Latin America and parts of the Caribbean region', 5:'RIPE NCC: Europe, Russia, the Middle East, and Central Asia', 0:'Unknown / Not Available'}
 
         if not token:
             self._error("A valid API token is required to use this service.")
@@ -112,6 +113,7 @@ class OpenDNSService(Service):
             thing = obj.ip
             reqs["dnsdb"] = "/dnsdb/ip/a/" + thing + ".json"
             reqs["latest_domains"] = "/ips/" + thing + "/latest_domains"
+            reqs['bgp_routes']="/bgp_routes/ip/"+thing+"as_for_ip.json"
         else:
             logger.error("Unsupported type.")
             self._error("Unsupported type.")
@@ -155,6 +157,8 @@ class OpenDNSService(Service):
             elif r == 'latest_domains':
                 for domain in resps[r]:
                     self._add_result(r, domain['name'], domain)
+            elif r =='bgp_routes':
+                self._add_result(r,thing,resps[r])
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
