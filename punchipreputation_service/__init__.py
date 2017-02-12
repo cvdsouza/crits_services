@@ -99,7 +99,7 @@ class PunchService(Service):
                         "Catogories": contextParse[0]['categories']}
                     data = {
                         "Source": subdict['source'],
-                        "Context": data_context,
+                        "Context": json.loads(data_context).encode('utf-8'),
                         "Last Seen": subdict['last_seen'],
                     }
                     self._add_result("IP Reputation", mkey, data)
