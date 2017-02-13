@@ -164,7 +164,7 @@ class OpenDNSService(Service):
                     if 'ir' in i:
                         self._add_result('Regional Internet Registries', thing,{'Regional Internet Registries':rir[i['ir']]})
             elif r == 'whois':
-                self._add_result(r,thing,resps[r])
+                self._add_result(r, resps[r])
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
