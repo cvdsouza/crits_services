@@ -164,7 +164,31 @@ class OpenDNSService(Service):
                     if 'ir' in i:
                         self._add_result('Regional Internet Registries', thing,{'Regional Internet Registries':rir[i['ir']]})
             elif r == 'whois':
-                self._add_result(r, resps[r])
+                whois_data = {
+                    'domainName': resps[r]['domainName'],
+                    'whoisServers': resps[r]['whoisServers'],
+                    'nameServers': resps[r]['nameServers'],
+                    'addresses': resps[r]['addresses'],
+                    'expires' : resps[r]['expires'],
+                    'emails': resps[r]['emails'],
+                    'created' : resps[r]['created'],
+                    'administrativeContactName': resps[r]['administrativeContactName'],
+                    'administrativeContactOrganization': resps[r]['administrativeContactOrganization'],
+                    'administrativeContactEmail': resps[r]['administrativeContactEmail'],
+                    'administrativeContactCity': resps[r]['administrativeContactCity'],
+                    'administrativeContactStreet': resps[r]['administrativeContactStreet'],
+                    'administrativeContactState': resps[r]['administrativeContactState'],
+                    'administrativeContactCountry': resps[r]['administrativeContactCountry'],
+                    'registrarName': resps[r]['registrarName'],
+                    'registrantEmail': resps[r]['registrantEmail'],
+                    'registrantOrganization': resps[r]['registrantOrganization'],
+                    'registrantStreet': resps[r]['registrantStreet'],
+                    'registrantCity': resps[r]['registrantCity'],
+                    'registrantState': resps[r]['registrantState'],
+                    'registrantCountry': resps[r]['registrantCountry'],
+                    'auditUpdatedDate' : resps[r]['auditUpdatedDate']
+                }
+                self._add_result(r,thing,whois_data)
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
