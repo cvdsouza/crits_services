@@ -109,6 +109,7 @@ class OpenDNSService(Service):
             reqs["security"] = "/security/name/" + thing + ".json"
             reqs["latest_tags"] = "/domains/" + thing + "/latest_tags"
             reqs["dnsdb"] = "/dnsdb/name/a/" + thing + ".json"
+            reqs["whois"]= "/whois/"+thing
         elif obj._meta['crits_type'] == 'IP':
             thing = obj.ip
             reqs["dnsdb"] = "/dnsdb/ip/a/" + thing + ".json"
@@ -162,6 +163,8 @@ class OpenDNSService(Service):
                     self._add_result(r,thing,i)
                     if 'ir' in i:
                         self._add_result('Regional Internet Registries', thing,{'Regional Internet Registries':rir[i['ir']]})
+            elif r == 'whois':
+                self._add_result(r,thing,resps[r])
             else:
                 self._add_result(r, thing, {str(type(resps[r])): str(resps[r])})
                 logger.error("Unsure how to handle %s" % (str(resps[r])))
