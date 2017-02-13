@@ -3,7 +3,7 @@ import json
 import requests
 
 from django.template.loader import render_to_string
-
+from django.conf import settings
 from crits.services.core import Service, ServiceConfigError
 
 from . import forms
@@ -66,6 +66,12 @@ class C1fappService(Service):
         return display_config
 
     def run(self, obj, config):
+        # Adding proxy capability.
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
         apikey = config.get('cif_api_key', '')
         queryUrl = config.get('cif_query_url', '')
 
@@ -95,7 +101,7 @@ class C1fappService(Service):
 
         payload = json.dumps(params)
 
-        cif_response = s.post(queryUrl, timeout=20, data=payload)
+        cif_response = s.post(queryUrl, timeout=20, data=payload, proxies=proxies)
         try:
             assert cif_response.status_code == 200
             self._info("API Response status code: %s"

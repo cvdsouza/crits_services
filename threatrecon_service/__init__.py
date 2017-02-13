@@ -3,7 +3,7 @@ import json
 import requests
 
 from django.template.loader import render_to_string
-
+from django.conf import settings
 from crits.services.core import Service, ServiceConfigError
 
 from . import forms
@@ -67,6 +67,12 @@ class ThreatreconService(Service):
         return display_config
 
     def run(self, obj, config):
+        # Adding proxy capability.
+        proxies=''
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+
         apikey = config.get('tr_api_key', '')
         queryUrl = config.get('tr_query_url', '')
 
@@ -83,7 +89,7 @@ class ThreatreconService(Service):
             return
 
         try:
-            response = requests.post(queryUrl, params=params)
+            response = requests.post(queryUrl, params=params, proxies=proxies)
         except Exception as e:
             logger.error("Threatrecon: network connection error (%s)" % e)
             self._error("Network connection error checking Threatrecon (%s)" % e)
