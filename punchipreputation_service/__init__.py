@@ -117,13 +117,26 @@ class PunchService(Service):
 
         self._info("Indicator Value : " + str(obj.value))
 
+        #Validate IP Indicator
+        match_ip = re.match("^(\d{0,3})\.(\d{0,3})\.(\d{0,3})\.(\d{0,3})$", str(obj.value))
+
+        # Validate URL Indicator
+        regex_url = re.compile(
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        match_url = re.match(regex_url,str(obj.value))
+
         '''
-        Check if Indicator is IPv4
+        Check if Indicator is IPv4 or URL
         '''
-        if socket.inet_aton(str(obj.value)):
+        if match_ip:
             self._info("IPv4 Address : "+str(obj.value))
             self.iprep_check(obj.value, config)
-        else:
+        elif match_url:
             pcre_url_check = url + 'pcrematch.php?apikey=' + api+'&pcre_match_url='+str(obj.value)
             r = requests.get(pcre_url_check, verify=False, proxies=proxies)
             if r.status_code != 200:
@@ -142,104 +155,8 @@ class PunchService(Service):
                             self._add_result('PCRE Match', subval['pcre'])
             except IndexError:
                 self._add_result('No PCRE Match')
-
-
-
-    def _get_query_type(self, obj):
-        """Abstract the query type from the call."""
-        if obj._meta['crits_type'] == 'Domain':
-            query = obj.domain
-        elif obj._meta['crits_type'] == 'IP':
-            query = obj.ip
-        elif obj._meta['crits_type'] == 'Indicator':
-            query = obj.value
-        elif obj._meta['crits_type'] == 'Email':
-            query = list()
-            for field in ['sender', 'to', 'from_address']:
-                tmp = getattr(obj, field)
-                self._info("Values: %s " % str(tmp))
-                if not tmp or tmp == '':
-                    continue
-                query.append(tmp)
-        self._info("Query value passed along: %s." % str(query))
-        return query
-
-    def check_my_dump(self,obj,config):
-        query = self._get_query_type(obj)
-        field ='email'
-        if settings.HTTP_PROXY:
-            proxies = {'http': settings.HTTP_PROXY,
-                       'https': settings.HTTP_PROXY}
         else:
-            proxies = {}
-
-        url = config['url_dump']
-        api = config['apiKey']
-
-        if type(query)==list:
-            for item in query:
-                if type(item) == list:
-                    for email in item:
-
-                        checkmydump = url + 'api/email/' + email + '?apikey=' + api
-                        self._info("Email addresses in list of list : %s" %item)
-                        r = requests.get(checkmydump, verify=False, proxies=proxies)
-                        if r.status_code != 200:
-                            self._error("Response code not 200")
-                            return
-                        results = r.json()
-                        self._info("CMD returned inside list of list : %s" % results)
-                        if 'message' in results:
-                            self._add_result("Check My Dump", results['message'])
-                        else:
-
-                            for record in results['rows']:
-                                data = {'Username': record.get['username'],
-                                        'Domain': record['domain'],
-                                        'Password': record['password'],
-                                        'Userbase': record['userbase'],
-                                        }
-                                self._add_result("Check My Dump", str(item), data)
-                else:
-                    checkmydump = url + 'api/email/' + str(item) + '?apikey=' + api
-                    self._info("Email addresses : %s" % item)
-                    r = requests.get(checkmydump, verify=False, proxies=proxies)
-                    if r.status_code != 200:
-                        self._error("Response code not 200")
-                        return
-
-                    results = r.json()
-                    self._info("CMD returned : %s" %results)
-                    if 'message' in results:
-                       self._add_result("Check My Dump" , results['message'])
-                    else:
-
-                        for record in results['rows'][0]:
-                            data = {'Username' : record.get['username'],
-                                    'Domain': record['domain'],
-                                    'Password': record['password'],
-                                    'Userbase': record['userbase'],
-                                    }
-                            self._add_result("Check My Dump", str(item), data)
-        else:
-            checkmydump = url + 'api/email/' + query + '?apikey=' + api
-            r = requests.get(checkmydump, verify=False, proxies=proxies)
-            if r.status_code != 200:
-                self._error("Response code not 200")
-                return
-
-            results = r.json()
-            if 'message' in results:
-                self._add_result("Check My Dump", results['message'])
-            else:
-
-                for record in results['rows']:
-                    data = {'Username': record.get['username'],
-                            'Domain': record['domain'],
-                            'Password': record['password'],
-                            'Userbase': record['userbase'],
-                            }
-                    self._add_result("Check My Dump", record['username'], data)
+            self._add_result("INCOMPATIBLE INDICATOR (IP or URL ONLY)", "INCOMPATIBLE INDICATOR")
 
 
     def run(self, obj, config):
