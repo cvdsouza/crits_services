@@ -129,7 +129,7 @@ class PunchService(Service):
 
             if 'MaxMind_Free_GeoIP' in i:
                 geo = {}
-                for num in json.get('MaxMind_Free_GeoIP'):
+                for num in i.get('MaxMind_Free_GeoIP'):
                     geo = {
                         "city": num['city'],
                         "Continent": num['continent_code'],
