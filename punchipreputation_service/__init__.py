@@ -73,8 +73,11 @@ class PunchService(Service):
 
         self._info("IP Address : "+ str(ip))
 
-
-        iprep_url_check = url+'iprep.php/'+str(ip)+'?apikey='+api
+        match = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(ip))
+        if match.group(2):
+            iprep_url_check = url + 'iprep_cidr.php/' + str(ip) + '?apikey=' + api
+        else:
+            iprep_url_check = url+'iprep.php/'+str(ip)+'?apikey='+api
 
         r = requests.get(iprep_url_check,verify=False, proxies= proxies)
 
