@@ -76,37 +76,67 @@ class PunchService(Service):
         match = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(ip))
         if match.group(1):
             iprep_url_check = url + 'iprep_cidr.php/' + str(ip) + '?apikey=' + api
+            r = requests.get(iprep_url_check, verify=False, proxies=proxies)
+
+            if r.status_code != 200:
+                self._error("Response code not 200.")
+                return
+            data = {}
+            results = r.json()
+            self.iprep_cidr(results)
         else:
             iprep_url_check = url+'iprep.php/'+str(ip)+'?apikey='+api
 
-        r = requests.get(iprep_url_check,verify=False, proxies= proxies)
+            r = requests.get(iprep_url_check,verify=False, proxies= proxies)
 
-        if r.status_code != 200:
-            self._error("Response code not 200.")
-            return
-        data = {}
-        results = r.json()
-        self._add_result("Origin", results['origin'],)
-        self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(ip)+"?apikey="+api)
-        for mkey, subdict in results.iteritems():
-            if 'context' in subdict  :
+            if r.status_code != 200:
+                self._error("Response code not 200.")
+                return
+            data = {}
+            results = r.json()
+            self._add_result("Origin", results['origin'],)
+            self._add_result("IP History","https://packetmail.net/iprep_history.php/"+str(ip)+"?apikey="+api)
+            for mkey, subdict in results.iteritems():
+                if 'context' in subdict  :
 
-                data = {
-                    "Source": subdict['source'],
-                    "Context": subdict['context'],
-                    "Last Seen": subdict['last_seen']
-                }
-                self._add_result("IP Reputation", mkey, data)
+                    data = {
+                        "Source": subdict['source'],
+                        "Context": subdict['context'],
+                        "Last Seen": subdict['last_seen']
+                    }
+                    self._add_result("IP Reputation", mkey, data)
 
-        if 'MaxMind_Free_GeoIP' in results:
-            geo={}
-            for num in results.get('MaxMind_Free_GeoIP'):
-                geo = {
-                    "city": num['city'],
-                    "Continent": num['continent_code'],
-                    "Country": num['country_name']
-                }
-            self._add_result("Geo Location","Location" ,geo)
+            if 'MaxMind_Free_GeoIP' in results:
+                geo={}
+                for num in results.get('MaxMind_Free_GeoIP'):
+                    geo = {
+                        "city": num['city'],
+                        "Continent": num['continent_code'],
+                        "Country": num['country_name']
+                    }
+                self._add_result("Geo Location","Location" ,geo)
+
+    def iprep_cidr(self,json):
+        for i in json:
+            for mkey, subdict in i.iteritems():
+                if 'context' in subdict:
+                    data = {
+                        "Source": subdict['source'],
+                        "Context": subdict['context'],
+                        "Last Seen": subdict['last_seen']
+                    }
+                    self._add_result("IP Reputation", mkey, data)
+
+            if 'MaxMind_Free_GeoIP' in i:
+                geo = {}
+                for num in json.get('MaxMind_Free_GeoIP'):
+                    geo = {
+                        "city": num['city'],
+                        "Continent": num['continent_code'],
+                        "Country": num['country_name']
+                    }
+                self._add_result("Geo Location", "Location", geo)
+
 
     def pcre_match(self, obj, config):
         if settings.HTTP_PROXY:
