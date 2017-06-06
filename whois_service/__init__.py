@@ -1,12 +1,13 @@
 import logging
 import requests
 import pythonwhois
+import re
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from crits.services.core import Service, ServiceConfigError
-
+from crits.indicators.indicator import Indicator
 from . import forms
 from . import dtapi
 
@@ -19,7 +20,7 @@ class WHOISService(Service):
 
     name = "whois"
     version = '1.0.0'
-    supported_types = [ 'Domain' ]
+    supported_types = [ 'Domain', 'Indicator', 'IP' ]
     template = 'whois_service_template.html'
     description = "Lookup WHOIS records for domains."
 
@@ -91,6 +92,8 @@ class WHOISService(Service):
                                  'crits_type': crits_type,
                                  'identifier': identifier})
         return html
+
+
 
     # Live queries work well on the "bigger" TLDs. Using it on a .coop
     # results in hilarity because the parser misses everything.
@@ -311,7 +314,18 @@ class WHOISService(Service):
             }
             self._add_result('DomainTools: Nameserver History', data)
 
+    def dt_indicator_parser(self,obj,config):
+        # DomainTools on IP Indicators
+        # Validate IP Indicator
+        valid_types = ('Domain','IPv4 Address')
 
+        match_ip = re.match("^(\d{0,3})\.(\d{0,3})\.(\d{0,3})\.(\d{0,3})$", str(obj.value))
+        if match_ip:
+            self._info("IPv4 Address : " + str(obj.value))
+            self.do_dt_query(obj, config)
+            self.dt_ip_history(obj,config)
+            self.dt_registrar_history(obj, config)
+            self.dt_nameserver_history(obj, config)
 
     def run(self, obj, config):
         if settings.HTTP_PROXY:
@@ -326,7 +340,16 @@ class WHOISService(Service):
         if config['pydat_url'] and config['pydat_query']:
             self.do_pydat_query(obj, config)
 
-        if config['dt_api_key'] and config['dt_username'] and config['dt_query']:
+        if config['dt_api_key'] and config['dt_username'] and config['dt_query'] and obj._meta['crits_type'] == 'Domain':
+            self.do_dt_query(obj, config)
+            self.dt_ip_history(obj, config)
+            self.dt_registrar_history(obj, config)
+            self.dt_nameserver_history(obj, config)
+
+        if config['dt_api_key'] and config['dt_username'] and config['dt_query'] and obj._meta['crits_type'] == 'Indicator':
+           self.dt_indicator_parser(obj,config)
+
+        if config['dt_api_key'] and config['dt_username'] and config['dt_query'] and obj._meta['crits_type'] == 'IP':
             self.do_dt_query(obj, config)
             self.dt_ip_history(obj, config)
             self.dt_registrar_history(obj, config)
