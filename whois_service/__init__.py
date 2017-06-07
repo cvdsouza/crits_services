@@ -197,6 +197,7 @@ class WHOISService(Service):
                 resp2 = dt.reverse_ip(obj.domain,'80')
                 resp3 = dt.hosting_history(obj.domain)
             elif  obj._meta['crits_type'] == 'IP':
+                self._info("IP Selected %s" % str(obj.ip))
                 resp = dt.whois_parsed(obj.ip)
                 resp1 = dt.reverse_ns(obj.ip, '80')
                 resp2 = dt.reverse_ip(obj.ip, '80')
