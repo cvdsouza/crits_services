@@ -239,8 +239,8 @@ class WHOISService(Service):
         dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
 
         try:
-            #resp3 = dt.hosting_history(obj.domain)
-            resp3 = dt.hosting_history(obj.ip)
+            resp3 = dt.hosting_history(obj.domain)
+
         except dtapi.DTError as e:
             self._info(str(e))
             return
@@ -268,8 +268,8 @@ class WHOISService(Service):
         dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
 
         try:
-            #resp3 = dt.hosting_history(obj.domain)
-            resp3 = dt.hosting_history(str(obj.value))
+            resp3 = dt.hosting_history(obj.domain)
+
         except dtapi.DTError as e:
             self._info(str(e))
             return
@@ -298,8 +298,8 @@ class WHOISService(Service):
         dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
 
         try:
-            #resp3 = dt.hosting_history(obj.domain)
-            resp3 = dt.hosting_history(str(obj.value))
+            resp3 = dt.hosting_history(obj.domain)
+
         except dtapi.DTError as e:
             self._info(str(e))
             return
