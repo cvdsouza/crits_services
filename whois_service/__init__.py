@@ -198,10 +198,10 @@ class WHOISService(Service):
                 resp3 = dt.hosting_history(obj.domain)
             elif  obj._meta['crits_type'] == 'IP':
                 self._info("IP Selected %s" % str(obj.ip))
-                resp = dt.whois_parsed(obj.ip)
-                resp1 = dt.reverse_ns(obj.ip, '80')
-                resp2 = dt.reverse_ip(obj.ip, '80')
-                resp3 = dt.hosting_history(obj.ip)
+                resp = dt.whois_parsed(str(obj.ip))
+                #resp1 = dt.reverse_ns(str(obj.ip), '80')
+                #resp2 = dt.reverse_ip(str(obj.ip), '80')
+                #resp3 = dt.hosting_history(str(obj.ip))
 
 
         except dtapi.DTError as e:
@@ -210,12 +210,12 @@ class WHOISService(Service):
 
         results = resp.json()
         results = results['response']['parsed_whois']
-        results1 = resp1.json()
-        results1 = results1['response']['primary_domains']
-        results2 = resp2.json()
-        results2 = results2['response']['ip_addresses']
-        results3 = resp3.json()
-        results3 = results3['response']
+        #results1 = resp1.json()
+        #results1 = results1['response']['primary_domains']
+        #results2 = resp2.json()
+        #results2 = results2['response']['ip_addresses']
+        #results3 = resp3.json()
+        #results3 = results3['response']
 
         contacts = results.get('contacts', {})
         for contact_type in contacts.keys():
@@ -235,11 +235,11 @@ class WHOISService(Service):
             if v:
                 self._add_result('DomainTools: Registrar', v, {'Key': k})
 
-        for pd in results1:
-            self._add_result('DomainTools: Name Server Domains',pd)
+       # for pd in results1:
+        #    self._add_result('DomainTools: Name Server Domains',pd)
 
-        for reverseIP in results2.get('domain_names'):
-            self._add_result('DomainTools: Reverse IP', reverseIP)
+        #for reverseIP in results2.get('domain_names'):
+         #   self._add_result('DomainTools: Reverse IP', reverseIP)
 
 
     def dt_ip_history(self, obj, config):
