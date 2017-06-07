@@ -187,11 +187,20 @@ class WHOISService(Service):
 
         dt = dtapi.dtapi(config['dt_username'], config['dt_api_key'])
         try:
-
-            resp = dt.whois_parsed(obj.domain)
-            resp1 = dt.reverse_ns(obj.domain,'80')
-            resp2 = dt.reverse_ip(obj.domain,'80')
-            resp3 = dt.hosting_history(obj.domain)
+            resp=""
+            resp1=""
+            resp2=""
+            resp3=""
+            if obj._meta['crits_type'] == 'Domain':
+                resp = dt.whois_parsed(obj.domain)
+                resp1 = dt.reverse_ns(obj.domain,'80')
+                resp2 = dt.reverse_ip(obj.domain,'80')
+                resp3 = dt.hosting_history(obj.domain)
+            elif  obj._meta['crits_type'] == 'IP':
+                resp = dt.whois_parsed(obj.ip)
+                resp1 = dt.reverse_ns(obj.ip, '80')
+                resp2 = dt.reverse_ip(obj.ip, '80')
+                resp3 = dt.hosting_history(obj.ip)
 
 
         except dtapi.DTError as e:
@@ -357,6 +366,6 @@ class WHOISService(Service):
 
         if config['dt_api_key'] and config['dt_username'] and config['dt_query'] and obj._meta['crits_type'] == 'IP':
             self.do_dt_query(obj, config)
-            self.dt_ip_history(obj, config)
-            self.dt_registrar_history(obj, config)
-            self.dt_nameserver_history(obj, config)
+            #self.dt_ip_history(obj, config)
+            #self.dt_registrar_history(obj, config)
+            #self.dt_nameserver_history(obj, config)
