@@ -193,10 +193,10 @@ class WHOISService(Service):
             resp2 = dt.reverse_ip(obj.domain,'80')
             resp3 = dt.hosting_history(obj.domain)
             '''
-            resp = dt.whois_parsed(obj.ip)
-            resp1 = dt.reverse_ns(obj.ip,'80')
-            resp2 = dt.reverse_ip(obj.ip,'80')
-            resp3 = dt.hosting_history(obj.ip)
+            resp = dt.whois_parsed(str(obj.value))
+            resp1 = dt.reverse_ns(str(obj.value),'80')
+            resp2 = dt.reverse_ip(str(obj.value),'80')
+            resp3 = dt.hosting_history(str(obj.value))
         except dtapi.DTError as e:
             self._info(str(e))
             return
@@ -269,7 +269,7 @@ class WHOISService(Service):
 
         try:
             #resp3 = dt.hosting_history(obj.domain)
-            resp3 = dt.hosting_history(obj.ip)
+            resp3 = dt.hosting_history(str(obj.value))
         except dtapi.DTError as e:
             self._info(str(e))
             return
@@ -299,7 +299,7 @@ class WHOISService(Service):
 
         try:
             #resp3 = dt.hosting_history(obj.domain)
-            resp3 = dt.hosting_history(obj.ip)
+            resp3 = dt.hosting_history(str(obj.value))
         except dtapi.DTError as e:
             self._info(str(e))
             return
