@@ -113,6 +113,7 @@ class ThreatGRIDService(Service):
         """
         url = urlparse.urljoin(self.host, path)
         req_params['api_key'] = self.api_key
+        req_params['private'] = True
         req_verify = False  # SSL CERT verification
 
         if settings.HTTP_PROXY:
