@@ -4,7 +4,7 @@ Author : Clinton Dsouza
 '''
 
 import logging
-
+import co3
 import itertools
 import simplejson
 import urllib
@@ -114,6 +114,7 @@ class IntelService(Service):
         filehash_sha256 = obj.sha256
         filehash_sha1 = obj.sha1
         filehash_impfuzzy = obj.impfuzzy
+        sample_id = obj.id
         ticket_number = config['ticketNumber']
         if ticket_number is None:
             self._info("Empty, enter a ticket number")
@@ -133,6 +134,42 @@ class IntelService(Service):
                 indicator = Indicator.objects(id=rel.object_id).first()
                 self._info("Print relationship value : %s " % indicator.value)
                 self._info("Print relationship type : %s " % indicator.ind_type)
+                post_value = self.push_to_resilient(ticket_number,indicator.value,indicator.ind_type,sample_id)
+                self._add_result("Reslient Result", post_value)
+
+
+    def push_to_resilient(self,ticket_number,indicator_value, indicator_type,crits_sample_id):
+        client=co3.SimpleClient(org_name="",base_url="",verify=False)
+        session = client.connect("","")
+
+        inc_json = client.get("/incidents/{}/artifacts".format(str(ticket_number)))
+        artifact_value=[]
+        artifact_value_id=dict()
+        value_post={}
+        for i in inc_json:
+            artifact_value_id[i['value']] = i['id']
+
+        if indicator_value in artifact_value_id:
+
+            artifact_value_update = {"description":"Artifact updated in CRITs"}
+            artifact_id = artifact_value_id.get(indicator_value)
+            value_update=client.put("/incidents/%s/artifacts/%s" % (str(ticket_number),str(artifact_id)), artifact_value_update)
+            print "found"
+        else:
+            if indicator_type == "IPv4 Address":
+                type = "IP Address"
+                artifact_json = {"value": indicator_value, "type": type}
+                value_post = client.post("/incidents/%s/artifacts",artifact_json)
+            elif indicator_type == "Domain":
+                type = "Domain"
+                artifact_json = {"value": indicator_value, "type": type}
+                value_post = client.post("/incidents/%s/artifacts", artifact_json)
+            elif indicator_type == "URI":
+                type = "URL"
+                artifact_json = {"value": indicator_value, "type": type}
+                value_post = client.post("/incidents/%s/artifacts", artifact_json)
+
+        return value_post
 
 
 
