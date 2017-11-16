@@ -44,11 +44,16 @@ class IntelService(Service):
     required_fields = []
     description ="Collate vital informaation : IP, Hash, Strings, Indicators, Domains regarding a sample"
 
+    base_url = ''
+    org_name = ''
+    api_email = ''
+    api_password= ''
+
     @staticmethod
     def parse_config(config):
 
-        if (config['url'] and not config['apiKey']):
-            raise ServiceConfigError("Specify a URL and API Key to transfer information (ignore for now")
+        if (config['base_url'] and not config['org_name'] and not config['api_email'] and not config['api_password']):
+            raise ServiceConfigError("Specify a URL, Org Name and Api Email and Password to transfer information (ignore for now")
 
     @staticmethod
     def get_config(existing_config):
@@ -139,8 +144,9 @@ class IntelService(Service):
 
 
     def push_to_resilient(self,ticket_number,indicator_value, indicator_type,crits_sample_id):
-        client=co3.SimpleClient(org_name="",base_url="",verify=False)
-        session = client.connect("","")
+
+        client=co3.SimpleClient(org_name=str(self.org_name),base_url=str(self.base_url),verify=False)
+        session = client.connect(str(self.api_email),str(self.api_password))
 
         inc_json = client.get("/incidents/{}/artifacts".format(str(ticket_number)))
         artifact_value=[]
@@ -177,5 +183,10 @@ class IntelService(Service):
 
 
     def run(self, obj, config):
+        self.base_url = config.get('base_url', '')
+        self.org_name = config.get('org_name', '')
+        self.api_email = config.get('api_email', '')
+        self.api_password = config.get('api_password', '')
+
         if obj._meta['crits_type'] == 'Sample':
             self.collate_intel(obj, config)

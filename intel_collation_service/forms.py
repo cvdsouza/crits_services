@@ -4,16 +4,29 @@ class IntelConfigForm(forms.Form):
     error_css_class = 'error'
     required_css_class = 'required'
 
-    url = forms.CharField(required=False,
+    base_url = forms.CharField(required=False,
                            label="URL",
                            initial='https://xyz.net/',
                            widget=forms.TextInput(),
                            help_text="Web URL to post the Intel to")
-    apiKey = forms.CharField(required=True,
-                                   label="API Key",
-                                   initial='',
-                                   widget=forms.TextInput(),
-                                   help_text="API Key")
+
+    org_name = forms.CharField(required=True,
+                             label="Org Name",
+                             initial='',
+                             widget=forms.TextInput(),
+                             help_text="Organization Name")
+
+    api_email = forms.CharField(required=True,
+                               label="Org Name",
+                               initial='',
+                               widget=forms.TextInput(),
+                               help_text="Organization Name")
+
+    api_password = forms.CharField(required=True,
+                                label="Password",
+                                initial='',
+                                widget=forms.PasswordInput(),
+                                help_text="Password")
 
 
     def __init__(self, *args, **kwargs):
