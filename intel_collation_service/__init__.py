@@ -145,8 +145,13 @@ class IntelService(Service):
 
     def push_to_resilient(self,ticket_number,indicator_value, indicator_type,crits_sample_id):
 
-        client=co3.SimpleClient(org_name=str(self.org_name),base_url=str(self.base_url),verify=False)
+        self._info("URL : %s" %self.base_url)
+        self._info("Org : %s" %self.org_name)
+        self._info("Email : %s" %self.api_email)
+        
+        client=co3.SimpleClient(org_name=str(self.org_name),base_url=str(self.base_url),verify=False, proxies=None)
         session = client.connect(str(self.api_email),str(self.api_password))
+
 
         inc_json = client.get("/incidents/{}/artifacts".format(str(ticket_number)))
         artifact_value=[]
