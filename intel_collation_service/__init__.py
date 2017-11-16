@@ -148,7 +148,7 @@ class IntelService(Service):
         self._info("URL : %s" %self.base_url)
         self._info("Org : %s" %self.org_name)
         self._info("Email : %s" %self.api_email)
-        
+
         client=co3.SimpleClient(org_name=str(self.org_name),base_url=str(self.base_url),verify=False, proxies=None)
         session = client.connect(str(self.api_email),str(self.api_password))
 
@@ -170,15 +170,15 @@ class IntelService(Service):
             if indicator_type == "IPv4 Address":
                 type = "IP Address"
                 artifact_json = {"value": indicator_value, "type": type}
-                value_post = client.post("/incidents/%s/artifacts",artifact_json)
+                value_post = client.post("/incidents/%s/artifacts" % artifact_json)
             elif indicator_type == "Domain":
                 type = "Domain"
                 artifact_json = {"value": indicator_value, "type": type}
-                value_post = client.post("/incidents/%s/artifacts", artifact_json)
+                value_post = client.post("/incidents/%s/artifacts" % artifact_json)
             elif indicator_type == "URI":
                 type = "URL"
                 artifact_json = {"value": indicator_value, "type": type}
-                value_post = client.post("/incidents/%s/artifacts", artifact_json)
+                value_post = client.post("/incidents/%s/artifacts" % artifact_json)
 
         return value_post
 
