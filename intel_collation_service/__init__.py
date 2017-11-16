@@ -139,11 +139,11 @@ class IntelService(Service):
                 indicator = Indicator.objects(id=rel.object_id).first()
                 self._info("Print relationship value : %s " % indicator.value)
                 self._info("Print relationship type : %s " % indicator.ind_type)
-                post_value = self.push_to_resilient(ticket_number,indicator.value,indicator.ind_type,sample_id)
+                post_value = self.push_to_resilient(ticket_number,indicator.value,indicator.ind_type,sample_id,obj)
                 self._add_result("Reslient Result", post_value)
 
 
-    def push_to_resilient(self,ticket_number,indicator_value, indicator_type,crits_sample_id):
+    def push_to_resilient(self,ticket_number,indicator_value, indicator_type,crits_sample_id,obj):
 
         self._info("URL : %s" %self.base_url)
         self._info("Org : %s" %self.org_name)
@@ -179,6 +179,30 @@ class IntelService(Service):
                 type = "URL"
                 artifact_json = {"value": indicator_value, "type": type}
                 value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+
+            elif obj._meta['crits_type'] == 'Sample':
+                type_md5="Malware MD5 Hash"
+                type_sha1="Malware SHA-1 Hash"
+                type_sha256="Malware SHA-256 Hash"
+                type_fuzzy = "Malware Sample Fuzzy Hash"
+
+                if obj.md5:
+                    filehash_md5 = obj.md5
+                    artifact_json = {"value": filehash_md5, "type": type_md5}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+                if obj.sha256:
+                    filehash_sha256 = obj.sha256
+                    artifact_json = {"value": filehash_sha256, "type": type_sha256}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+                if obj.sha1:
+                    filehash_sha1 = obj.sha1
+                    artifact_json = {"value": filehash_sha1, "type": type_sha1}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+                if obj.impfuzzy:
+                    filehash_impfuzzy = obj.impfuzzy
+                    artifact_json = {"value": filehash_impfuzzy, "type": type_fuzzy}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+
 
         return value_post
 
