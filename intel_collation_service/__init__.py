@@ -170,15 +170,15 @@ class IntelService(Service):
             if indicator_type == "IPv4 Address":
                 type = "IP Address"
                 artifact_json = {"value": indicator_value, "type": type}
-                value_post = client.post("/incidents/%s/artifacts" % artifact_json)
+                value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
             elif indicator_type == "Domain":
                 type = "Domain"
                 artifact_json = {"value": indicator_value, "type": type}
-                value_post = client.post("/incidents/%s/artifacts" % artifact_json)
+                value_post = client.post("/incidents/%s/artifacts" % ticket_number ,artifact_json)
             elif indicator_type == "URI":
                 type = "URL"
                 artifact_json = {"value": indicator_value, "type": type}
-                value_post = client.post("/incidents/%s/artifacts" % artifact_json)
+                value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
 
         return value_post
 
