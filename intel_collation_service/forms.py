@@ -17,10 +17,10 @@ class IntelConfigForm(forms.Form):
                              help_text="Organization Name")
 
     api_email = forms.CharField(required=True,
-                               label="Org Name",
+                               label="User Email",
                                initial='',
                                widget=forms.TextInput(),
-                               help_text="Organization Name")
+                               help_text="User Email")
 
     api_password = forms.CharField(required=True,
                                 label="Password",
