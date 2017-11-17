@@ -40,7 +40,7 @@ class IntelService(Service):
 
     name = "intel_collation_service"
     version ='1.0.0'
-    supported_types=['Domain', 'IP', 'Indicator', 'Sample']
+    supported_types=['Email', 'Sample']
     required_fields = []
     description ="Collate vital informaation : IP, Hash, Strings, Indicators, Domains regarding a sample"
 
@@ -203,6 +203,26 @@ class IntelService(Service):
                     artifact_json = {"value": filehash_impfuzzy, "type": type_fuzzy}
                     value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
 
+            elif obj.meta['crits_type'] == 'Email':
+                type_sender = "Email Sender"
+                type_subject = "Email Subject"
+
+                if obj.subject :
+                    subject = obj.subject
+                    artifact_json={"value":subject,"type": type_subject}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+
+                if obj.reply_to:
+                    reply_to = obj.reply_to
+                    artifact_json = {"value": reply_to, "type": type_sender}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+
+                if obj.sender:
+                    sender = obj.sender
+                    artifact_json = {"value": sender, "type": type_sender}
+                    value_post = client.post("/incidents/%s/artifacts" % ticket_number, artifact_json)
+
+
 
         return value_post
 
@@ -217,5 +237,5 @@ class IntelService(Service):
         self.api_email = config.get('api_email', '')
         self.api_password = config.get('api_password', '')
 
-        if obj._meta['crits_type'] == 'Sample':
+        if obj._meta['crits_type'] == 'Sample' or obj._meta['crits_type'] == 'Email':
             self.collate_intel(obj, config)
