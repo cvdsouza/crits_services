@@ -12,15 +12,17 @@ class ThreatGRIDConfigForm(forms.Form):
                                 label="ThreatGRID URL",
                                 widget=forms.TextInput(),
                                 initial='https://panacea.threatgrid.com/')
-    auto_submit = forms.BooleanField(required=False,
-                                label="Auto Submit",
-                                initial=False,
-                                help_text="Automatically submit samples during triage.")
     machine = forms.CharField(required=True,
                               label="Machines",
                               initial='',
                               widget=forms.Textarea(attrs={'cols': 40, 'rows': 6}),
                               help_text="Newline separated list of machines to use for analysis.")
+    auto_submit = forms.BooleanField(required=False,
+                                label="Auto Submit",
+                                initial=False,
+                                help_text="Automatically submit samples during triage.")
+
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
         super(ThreatGRIDConfigForm, self).__init__(*args, **kwargs)
@@ -28,10 +30,12 @@ class ThreatGRIDConfigForm(forms.Form):
 class ThreatGRIDRunForm(forms.Form):
     error_css_class = 'error'
     required_css_class = 'required'
+
     submit = forms.BooleanField(required=False,
                                   label="Submit",
                                   help_text="Submit sample if not found.",
                                   initial=True)
+
     machine = forms.ChoiceField(required=True,
                                 label="Machine",
                                 initial=[],

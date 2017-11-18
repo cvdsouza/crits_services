@@ -38,8 +38,11 @@ class ThreatGRIDService(Service):
 
     @staticmethod
     def parse_config(config):
+        machines = config.get('machine', [])
+        if isinstance(machines, basestring):
+            config['machine'] = [machine for machine in machines.split('\r\n')]
         if not config['api_key'] and not config['machine']:
-            raise ServiceConfigError('API and Machine names required.')
+            raise ServiceConfigError('API Key and Machine names required.')
 
     @staticmethod
     def get_config(existing_config):
