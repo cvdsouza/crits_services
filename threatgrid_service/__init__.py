@@ -38,8 +38,8 @@ class ThreatGRIDService(Service):
 
     @staticmethod
     def parse_config(config):
-        if not config['api_key']:
-            raise ServiceConfigError('API key required.')
+        if not config['api_key'] and not config['machine']:
+            raise ServiceConfigError('API and Machine names required.')
 
     @staticmethod
     def get_config(existing_config):
@@ -71,6 +71,10 @@ class ThreatGRIDService(Service):
         return form, html
 
     @staticmethod
+    def _tuplize_machines(machines):
+        return [(machine, machine) for machine in machines]
+
+    @staticmethod
     def get_config_details(config):
         """
         Get configuration information from service settings
@@ -80,7 +84,11 @@ class ThreatGRIDService(Service):
         # Rename keys so they render nice.
         fields = forms.ThreatGRIDConfigForm().fields
         for name, field in fields.iteritems():
-            display_config[field.label] = config[name]
+            if name == 'machine':
+                display_config[field.label] = '\r\n'.join(config[name])
+            else:
+                display_config[field.label] = config[name]
+
         return display_config
 
     @staticmethod
@@ -93,16 +101,21 @@ class ThreatGRIDService(Service):
                 config['submit'] = False
             else:
                 config['submit'] = config['auto_submit']
-        return forms.ThreatGRIDRunForm(config)
+        machines = ThreatGRIDService._tuplize_machines(config['machine'])
+        data = {'submit': config['submit'],
+                'machine': config['machine'][0]
+                }
+        return forms.ThreatGRIDRunForm(machines=machines, data=data)
 
     @classmethod
     def generate_runtime_form(self, analyst, config, crits_type, identifier):
         """
         Allow user to determine if they want to submit a sample for analysis
         """
+        machines = ThreatGRIDService._tuplize_machines(config['machine'])
         return render_to_string('services_run_form.html',
                                 {'name': self.name,
-                                 'form': forms.ThreatGRIDRunForm(),
+                                 'form': forms.ThreatGRIDRunForm(machines=machines),
                                  'crits_type': crits_type,
                                  'identifier': identifier})
 
@@ -112,8 +125,10 @@ class ThreatGRIDService(Service):
         - Implement error handling in a single location
         """
         url = urlparse.urljoin(self.host, path)
+        machine = self.config.get('machine', "")
         req_params['api_key'] = self.api_key
         req_params['private'] = True
+        req_params['vm'] = machine
         req_verify = False  # SSL CERT verification
 
         if settings.HTTP_PROXY:
