@@ -39,10 +39,13 @@ class ThreatGRIDService(Service):
     @staticmethod
     def parse_config(config):
         machines = config.get('machine', [])
+        playbooks = config.get('playbook', [])
         if isinstance(machines, basestring):
             config['machine'] = [machine for machine in machines.split('\r\n')]
-        if not config['api_key'] and not config['machine']:
-            raise ServiceConfigError('API Key and Machine names required.')
+        if isinstance(playbooks, basestring):
+            config['playbook'] = [playbook for playbook in playbooks.split('\r\n')]
+        if not config['api_key'] and not config['machine'] and not config['playbook']:
+            raise ServiceConfigError('API Key, Machine and playbooks names required.')
 
     @staticmethod
     def get_config(existing_config):
@@ -67,6 +70,8 @@ class ThreatGRIDService(Service):
         """
         # Convert machines to newline separated strings
         config['machine'] = '\r\n'.join(config['machine'])
+        # Convert machines to newline separated strings
+        config['playbook'] = '\r\n'.join(config['playbook'])
         # Convert sigfiles to newline separated strings
         html = render_to_string('services_config_form.html',
                                 {'name': self.name,
@@ -80,6 +85,10 @@ class ThreatGRIDService(Service):
         return [(machine, machine) for machine in machines]
 
     @staticmethod
+    def _tuplize_playbooks(playbooks):
+        return [(playbook, playbook) for playbook in playbooks]
+
+    @staticmethod
     def get_config_details(config):
         """
         Get configuration information from service settings
@@ -89,7 +98,7 @@ class ThreatGRIDService(Service):
         # Rename keys so they render nice.
         fields = forms.ThreatGRIDConfigForm().fields
         for name, field in fields.iteritems():
-            if name == 'machine':
+            if name == 'machine' or name=='playbook':
                 display_config[field.label] = '\r\n'.join(config[name])
             else:
                 display_config[field.label] = config[name]
@@ -107,10 +116,12 @@ class ThreatGRIDService(Service):
             else:
                 config['submit'] = config['auto_submit']
         machines = ThreatGRIDService._tuplize_machines(config['machine'])
+        playbooks = ThreatGRIDService._tuplize_machines(config['playbook'])
         data = {'submit': config['submit'],
-                'machine': config['machine'][0]
+                'machine': config['machine'][0],
+                'playbook': config['playbook'][0]
                 }
-        return forms.ThreatGRIDRunForm(machines=machines, data=data)
+        return forms.ThreatGRIDRunForm(machines=machines, playbooks=playbooks, data=data)
 
     @classmethod
     def generate_runtime_form(self, analyst, config, crits_type, identifier):
@@ -118,9 +129,10 @@ class ThreatGRIDService(Service):
         Allow user to determine if they want to submit a sample for analysis
         """
         machines = ThreatGRIDService._tuplize_machines(config['machine'])
+        playbooks = ThreatGRIDService._tuplize_playbooks(config['playbook'])
         return render_to_string('services_run_form.html',
                                 {'name': self.name,
-                                 'form': forms.ThreatGRIDRunForm(machines=machines),
+                                 'form': forms.ThreatGRIDRunForm(machines=machines, playbooks=playbooks),
                                  'crits_type': crits_type,
                                  'identifier': identifier})
 
@@ -131,9 +143,11 @@ class ThreatGRIDService(Service):
         """
         url = urlparse.urljoin(self.host, path)
         machine = self.config.get('machine', "")
+        playbook = self.config.get('playbook', "")
         req_params['api_key'] = self.api_key
         req_params['private'] = True
         req_params['vm'] = machine
+        req_params['playbook'] = playbook
         req_verify = False  # SSL CERT verification
 
         if settings.HTTP_PROXY:

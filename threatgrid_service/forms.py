@@ -17,6 +17,11 @@ class ThreatGRIDConfigForm(forms.Form):
                               initial='',
                               widget=forms.Textarea(attrs={'cols': 40, 'rows': 6}),
                               help_text="Newline separated list of machines to use for analysis.")
+    playbook = forms.CharField(required=True,
+                              label="Playbook",
+                              initial='',
+                              widget=forms.Textarea(attrs={'cols': 40, 'rows': 6}),
+                              help_text="Newline separated list of playbooks to use for analysis.")
     auto_submit = forms.BooleanField(required=False,
                                 label="Auto Submit",
                                 initial=False,
@@ -35,17 +40,24 @@ class ThreatGRIDRunForm(forms.Form):
                                   label="Submit",
                                   help_text="Submit sample if not found.",
                                   initial=True)
-
     machine = forms.ChoiceField(required=True,
                                 label="Machine",
                                 initial=[],
                                 help_text="Name of the machine to use for the analysis.")
+    playbook = forms.ChoiceField(required=True,
+                                label="Playbook",
+                                initial=[],
+                                help_text="Name of the machine to use for the analysis.")
 
-    def __init__(self, machines=[], *args, **kwargs):
+    def __init__(self, machines=[], playbooks=[], *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
         super(ThreatGRIDRunForm, self).__init__(*args, **kwargs)
 
         self.fields['machine'].choices = machines
         initial = [choice[0] for choice in machines]
         self.fields['machine'].initial = initial
+
+        self.fields['playbook'].choices = playbooks
+        initial = [choice[0] for choice in playbooks]
+        self.fields['playbook'].initial = initial
 
