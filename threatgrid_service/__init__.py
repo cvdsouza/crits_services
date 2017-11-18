@@ -62,6 +62,8 @@ class ThreatGRIDService(Service):
         """
         Provide the configuration information for ThreatGRID
         """
+        # Convert machines to newline separated strings
+        config['machine'] = '\r\n'.join(config['machine'])
         # Convert sigfiles to newline separated strings
         html = render_to_string('services_config_form.html',
                                 {'name': self.name,
