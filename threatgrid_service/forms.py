@@ -37,6 +37,11 @@ class ThreatGRIDRunForm(forms.Form):
                                 initial=[],
                                 help_text="Name of the machine to use for the analysis.")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, machines=[], *args, **kwargs):
         kwargs.setdefault('label_suffix', ':')
         super(ThreatGRIDRunForm, self).__init__(*args, **kwargs)
+
+        self.fields['machine'].choices = machines
+        initial = [choice[0] for choice in machines]
+        self.fields['machine'].initial = initial
+
