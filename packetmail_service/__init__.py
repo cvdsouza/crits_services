@@ -25,7 +25,7 @@ class PunchService(Service):
     @staticmethod
     def parse_config(config):
         # Must have both Punch API key and Punch URL .
-        if (config['url'] and not config['apiKey'] and not config['url_dump']) :
+        if (config['url'] and not config['apiKey']) :
             raise ServiceConfigError("Must specify Punch++ URL, CheckMyDump URL and API Key.")
 
     @staticmethod
