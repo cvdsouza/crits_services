@@ -73,7 +73,7 @@ class ThreatStreamService(Service):
 
         match = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(ip))
         if match.group(0):
-            ip_check = url+'iprep.php/'+'/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
+            ip_check = url+'/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
 
             r = requests.get(ip_check,verify=False, proxies= proxies)
 
