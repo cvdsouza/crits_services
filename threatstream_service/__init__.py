@@ -96,23 +96,23 @@ class ThreatStreamService(Service):
             url = 'N/A'
             country = 'N/A'
             for i in objects:
-                if i['domain']:
+                if 'domain' in i:
                     domain = i['domain']
-                if i['itype']:
+                if 'itype' in i:
                     itype = i['itype']
-                if i['confidence']:
+                if 'confidence' in i:
                     confidence = i['confidence']
-                if i['severity']:
+                if 'severity' in i:
                     severity = i['severity']
-                if i['source']:
+                if 'source' in i:
                     source = i['source']
-                if i['date_last']:
+                if 'date_last' in i:
                     date_last = i['date_last']
-                if i['md5']:
+                if 'md5' in i:
                     md5 = i['md5']
-                if i['url']:
+                if 'url' in i:
                     url = i['url']
-                if i['country']:
+                if 'country' in i:
                     country = i['country']
 
                 data = {
