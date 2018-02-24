@@ -203,7 +203,7 @@ class ThreatStreamService(Service):
         if obj._meta['crits_type'] == 'Domain':
             self.domain_intelligence(obj.domain,config)
         if obj._meta['crits_type'] == "Indicator":
-            match_ip = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(obj.indicator))
+            match_ip = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(obj.value))
             if match_ip.group(0):
                 self.ip_intelligence(obj.value,config)
             else:
