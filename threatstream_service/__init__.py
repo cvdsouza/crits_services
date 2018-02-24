@@ -204,15 +204,18 @@ class ThreatStreamService(Service):
             self.domain_intelligence(obj.domain,config)
         if obj._meta['crits_type'] == "Indicator":
             match_ip = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(obj.value))
-            if match_ip.group(0):
-                self.ip_intelligence(obj.value,config)
+            if match_ip is None:
+                return
             else:
-                match_domain= re.match("^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$", str(obj.value))
-
-                if match_domain is None:
-                    return
-                elif match_domain.group(0):
-                    self.domain_intelligence(obj.value,config)
+                if match_ip.group(0):
+                    self.ip_intelligence(obj.value,config)
                 else:
-                    self._add_result("NO MATCHING INDICATOR")
+                    match_domain= re.match("^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$", str(obj.value))
+
+                    if match_domain is None:
+                        return
+                    elif match_domain.group(0):
+                        self.domain_intelligence(obj.value,config)
+                    else:
+                        self._add_result("NO MATCHING INDICATOR")
 
