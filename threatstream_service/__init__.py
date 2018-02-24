@@ -76,7 +76,7 @@ class ThreatStreamService(Service):
         if match.group(0):
             ip_check = url+'/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
 
-            r = requests.get(ip_check,verify=True, proxies= proxies)
+            r = requests.get(ip_check,verify=True, proxies= proxies,headers={'ACCEPT': 'application/json, text/html'})
 
             if r.status_code != 200:
                 self._error("Response code not 200.")
