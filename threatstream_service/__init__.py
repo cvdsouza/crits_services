@@ -209,13 +209,13 @@ class ThreatStreamService(Service):
             else:
                 if match_ip.group(0):
                     self.ip_intelligence(obj.value,config)
-                else:
-                    match_domain= re.match("^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$", str(obj.value))
 
-                    if match_domain is None:
-                        return
-                    elif match_domain.group(0):
-                        self.domain_intelligence(obj.value,config)
-                    else:
-                        self._add_result("NO MATCHING INDICATOR")
+            match_domain= re.match("^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$", str(obj.value))
+
+            if match_domain is None:
+                return
+            elif match_domain.group(0):
+                self.domain_intelligence(obj.value,config)
+            else:
+                self._add_result("NO MATCHING INDICATOR")
 
