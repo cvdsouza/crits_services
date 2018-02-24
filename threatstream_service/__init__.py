@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ThreatStreamService(Service):
     name = "threatstream_service"
     version = '1.0.0'
-    supported_types = ['Sample','IP','Indicator']
+    supported_types = ['Sample','IP','Indicator', 'Domain']
     description = "Analyze IP reputation or malicious URL pcre"
 
     @staticmethod
@@ -127,8 +127,77 @@ class ThreatStreamService(Service):
                     'country': country
                 }
                 self._add_result("IP Reputation", str(ip), data)
+    def domain_intelligence(self, domain, config):
+
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
+        url = config['url']
+        api = config['apiKey']
+        user= config['user_email']
+
+        self._info("Domain  : "+ str(domain))
+        domain_check = url + '/intelligence/?username=' + user + '&ip=' + '&api_key=' + api +'&value__exact='+str(domain) + '&limit=25'
+
+        r = requests.get(domain_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies=proxies)
+
+        if r.status_code != 200:
+            self._error("Response code not 200.")
+            return
+        data = {}
+        self._info("Status : %s" % r.status_code)
+        self._info("JSON : %s" % r.json())
+        results = r.json()
+        objects = results['objects']
+
+        type = 'N/A'
+        ip = 'N/A'
+        org = 'N/A'
+        threat = 'N/A'
+        confidence = 'N/A'
+        score = 'N/A'
+        source = 'N/A'
+        status = 'N/A'
+        modified_ts = 'N/A'
+        for i in objects:
+            if 'itype' in i:
+                type = i['itype']
+            if 'ip' in i:
+                ip = i['ip']
+            if 'org' in i:
+                org = i['org']
+            if 'threat_type' in i:
+                threat = i['threat_type']
+            if 'confidence' in i:
+                confidence = i['confidence']
+            if 'threatscore' in i:
+                score = i['threatscore']
+            if 'source' in i:
+                source = i['source']
+            if 'status' in i:
+                status = i['status']
+            if 'modified_ts' in i:
+                modified_ts = i['modified_ts']
+
+            data = {
+                'type': type,
+                'ip': ip,
+                'org': org,
+                'threat': threat,
+                'confidence': confidence,
+                'threatscore': score,
+                'source': source,
+                'status': status,
+                'modified_ts': modified_ts
+            }
+            self._add_result("IP Reputation", str(domain), data)
 
     def run(self, obj, config):
 
         if obj._meta['crits_type'] == 'IP':
             self.ip_intelligence(obj.ip, config)
+        if obj._meta['crits_type'] == 'Domain':
+            self.domain_intelligence(obj.domain,config)
