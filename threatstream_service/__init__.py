@@ -1,6 +1,7 @@
 import requests
 import re
 import logging
+import json
 
 
 from django.conf import settings
@@ -75,12 +76,13 @@ class ThreatStreamService(Service):
         if match.group(0):
             ip_check = url+'/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
 
-            r = requests.get(ip_check,verify=False, proxies= proxies)
+            r = requests.get(ip_check,verify=True, proxies= proxies)
 
             if r.status_code != 200:
                 self._error("Response code not 200.")
                 return
             data = {}
+            self._info("JSON : "+ r.json())
             results = r.json()
             objects = results['objects']
             domain = 'N/A'
