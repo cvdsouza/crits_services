@@ -95,6 +95,7 @@ class ThreatStreamService(Service):
             md5 = 'N/A'
             url = 'N/A'
             country = 'N/A'
+            meta = 'N/A'
             for i in objects:
                 if 'domain' in i:
                     domain = i['domain']
@@ -114,6 +115,10 @@ class ThreatStreamService(Service):
                     url = i['url']
                 if 'country' in i:
                     country = i['country']
+                if 'meta' in i :
+                    meta = i['meta']
+
+
 
                 data = {
                     'domain': domain,
@@ -124,7 +129,9 @@ class ThreatStreamService(Service):
                     'last seen': date_last,
                     'md5 hash': md5,
                     'url': url,
-                    'country': country
+                    'country': country,
+                    'meta' : meta
+
                 }
                 self._add_result("IP Reputation", str(ip), data)
     def domain_intelligence(self, domain, config):
