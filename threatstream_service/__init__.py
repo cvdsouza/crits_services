@@ -74,7 +74,7 @@ class ThreatStreamService(Service):
 
         match = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(ip))
         if match.group(0):
-            ip_check = url+'/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
+            ip_check = url+'/v1/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
 
             r = requests.get(ip_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies= proxies)
 
@@ -95,7 +95,7 @@ class ThreatStreamService(Service):
             md5 = 'N/A'
             url = 'N/A'
             country = 'N/A'
-            meta = 'N/A'
+
             for i in objects:
                 if 'domain' in i:
                     domain = i['domain']
@@ -115,8 +115,7 @@ class ThreatStreamService(Service):
                     url = i['url']
                 if 'country' in i:
                     country = i['country']
-                if 'meta' in i :
-                    meta = i['meta']
+
 
 
 
@@ -130,7 +129,6 @@ class ThreatStreamService(Service):
                     'md5 hash': md5,
                     'url': url,
                     'country': country,
-                    'meta' : meta
 
                 }
                 self._add_result("IP Reputation", str(ip), data)
@@ -147,7 +145,7 @@ class ThreatStreamService(Service):
         user= config['user_email']
 
         self._info("Domain  : "+ str(domain))
-        domain_check = url + '/intelligence/?username=' + user + '&ip=' + '&api_key=' + api +'&value__exact='+str(domain) + '&limit=25'
+        domain_check = url + '/v2/intelligence/?username=' + user + '&ip=' + '&api_key=' + api +'&value__exact='+str(domain) + '&limit=25'
 
         r = requests.get(domain_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies=proxies)
 
