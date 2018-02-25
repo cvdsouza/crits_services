@@ -74,7 +74,7 @@ class ThreatStreamService(Service):
 
         match = re.match("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$", str(ip))
         if match.group(0):
-            ip_check = url+'/v1/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&limit=25'
+            ip_check = url+'/v1/intelligence/?username=' + user +'&ip='+str(ip)+ '&api_key=' + api + '&status=active&limit=100'
 
             r = requests.get(ip_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies= proxies)
 
@@ -85,7 +85,12 @@ class ThreatStreamService(Service):
             self._info("Status : %s" %r.status_code)
             self._info("JSON : %s" %r.json())
             results = r.json()
-            objects = results['objects']
+            if 'objects' in results:
+                objects = results['objects']
+            else:
+                return
+
+
             domain = 'N/A'
             itype = 'N/A'
             confidence = 'N/A'
@@ -145,7 +150,7 @@ class ThreatStreamService(Service):
         user= config['user_email']
 
         self._info("Domain  : "+ str(domain))
-        domain_check = url + '/v2/intelligence/?username=' + user + '&ip=' + '&api_key=' + api +'&value__exact='+str(domain) + '&limit=25'
+        domain_check = url + '/v2/intelligence/?username=' + user + '&api_key=' + api +'&value__exact='+str(domain) + '&status=active&limit=100'
 
         r = requests.get(domain_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies=proxies)
 
@@ -156,7 +161,10 @@ class ThreatStreamService(Service):
         self._info("Status : %s" % r.status_code)
         self._info("JSON : %s" % r.json())
         results = r.json()
-        objects = results['objects']
+        if 'objects' in results:
+            objects = results['objects']
+        else:
+            return
 
         type = 'N/A'
         ip = 'N/A'
@@ -200,6 +208,77 @@ class ThreatStreamService(Service):
             }
             self._add_result("IP Reputation", str(domain), data)
 
+    def sample_intelligence(self, hash, config):
+        if settings.HTTP_PROXY:
+            proxies = {'http': settings.HTTP_PROXY,
+                       'https': settings.HTTP_PROXY}
+        else:
+            proxies = {}
+
+        url = config['url']
+        api = config['apiKey']
+        user= config['user_email']
+
+        self._info("Domain  : "+ str(hash))
+        domain_check = url + '/v2/intelligence/?username=' + user + '&api_key=' + api +'&value__exact='+str(hash) + '&status=active&limit=100'
+
+        r = requests.get(domain_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies=proxies)
+
+        if r.status_code != 200:
+            self._error("Response code not 200.")
+            return
+        data = {}
+        self._info("Status : %s" % r.status_code)
+        self._info("JSON : %s" % r.json())
+        results = r.json()
+        if 'objects' in results:
+            objects = results['objects']
+        else:
+            return
+
+        type = 'N/A'
+        ip = 'N/A'
+        org = 'N/A'
+        threat = 'N/A'
+        confidence = 'N/A'
+        score = 'N/A'
+        source = 'N/A'
+        status = 'N/A'
+        modified_ts = 'N/A'
+        for i in objects:
+            if 'itype' in i:
+                type = i['itype']
+            if 'ip' in i:
+                ip = i['ip']
+            if 'org' in i:
+                org = i['org']
+            if 'threat_type' in i:
+                threat = i['threat_type']
+            if 'confidence' in i:
+                confidence = i['confidence']
+            if 'threatscore' in i:
+                score = i['threatscore']
+            if 'source' in i:
+                source = i['source']
+            if 'status' in i:
+                status = i['status']
+            if 'modified_ts' in i:
+                modified_ts = i['modified_ts']
+
+            data = {
+                'type': type,
+                'ip': ip,
+                'org': org,
+                'threat': threat,
+                'confidence': confidence,
+                'threatscore': score,
+                'source': source,
+                'status': status,
+                'modified_ts': modified_ts
+            }
+            self._add_result("Hash Reputation", str(hash), data)
+
+
     def run(self, obj, config):
 
 
@@ -218,4 +297,11 @@ class ThreatStreamService(Service):
 
             if match_domain is not None and match_domain.group(0) :
                 self.domain_intelligence(obj.value,config)
+
+            match_hash = re.match("^[a-f0-9]{32}$", str(obj.value))
+            if match_hash is not None and match_hash.group(0):
+                self.sample_intelligence(obj.value, config)
+
+        if obj._meta['crits_type'] == 'Sample':
+            self.sample_intelligence(obj.md5,config)
 
