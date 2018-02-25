@@ -219,7 +219,7 @@ class ThreatStreamService(Service):
         api = config['apiKey']
         user= config['user_email']
 
-        self._info("Domain  : "+ str(hash))
+        self._info("Hash  : "+ str(hash))
         domain_check = url + '/v2/intelligence/?username=' + user + '&api_key=' + api +'&value__exact='+str(hash) + '&status=active&limit=100'
 
         r = requests.get(domain_check, headers={'ACCEPT': 'application/json'}, verify=True, proxies=proxies)
@@ -303,5 +303,6 @@ class ThreatStreamService(Service):
                 self.sample_intelligence(obj.value, config)
 
         if obj._meta['crits_type'] == 'Sample':
+            self._info("Here")
             self.sample_intelligence(obj.md5,config)
 
